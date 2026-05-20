@@ -17,6 +17,13 @@
 - **Médias** : aperçu de chaque élément importé (favicon, logo, brochure)
 
 ---
+
+## Accès Administration
+
+**URL :** `sx9kp-admin.html`
+**Accès secret :** 7 clics rapides sur le logo "Class S" → fenêtre de connexion
+**Mot de passe Headmaster :** `ThetwoClassS@Adm2005!`
+
 ---
 
 ## Déploiement GitHub Pages
@@ -40,6 +47,7 @@ v3/
 ├── article.html        Article (SEO, auteur, hashtags)
 ├── contact.html        Contact (EmailJS + sauvegarde admin)
 ├── 404.html            Erreur 404
+├── sx9kp-admin.html    Administration (accès sécurisé)
 ├── css/style.css       Design system + marquee + crop modal
 ├── css/animations.css  Animations scroll
 ├── css/admin.css       Interface admin complète
