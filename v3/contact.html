@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Class S</title>
+  <meta name="description" content="Contactez Class S pour démarrer votre projet d'identité visuelle à Ouagadougou.">
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/animations.css">
+  <!-- EmailJS (chargé si configuré) -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+<div id="cursor" aria-hidden="true"></div>
+<div id="admin-modal" class="admin-modal"><div class="admin-modal-box"><button class="admin-modal-close" id="admin-modal-close">✕</button><div class="admin-modal-logo">Class S</div><p class="admin-modal-sub">Accès restreint.</p><input type="password" id="admin-modal-input" class="admin-input" placeholder="Mot de passe" autocomplete="off"><p class="admin-modal-error" id="admin-modal-err"></p><button id="admin-modal-submit" class="admin-btn" style="width:100%;padding:13px">Accéder</button></div></div>
+<div class="drawer-overlay" aria-hidden="true"></div>
+<nav class="nav-drawer"><button class="drawer-close" aria-label="Fermer">✕</button><a href="index.html">Accueil</a><a href="works.html">Projets</a><a href="services.html">Services</a><a href="works.html">Projets</a><a href="services.html">Services</a><a href="blog.html">Blog</a><a href="contact.html">Contact</a><a href="about.html">À propos</a></nav>
+<header class="navbar"><div class="container"><a href="index.html" class="navbar-logo" role="button" aria-label="Class S"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></a><ul class="navbar-links"><li><a href="index.html">Accueil</a></li><li><a href="works.html">Projets</a></li><li><a href="services.html">Services</a></li><li><a href="services.html">Services</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html" class="active">Contact</a></li></ul><button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button></div></header>
+<button id="back-to-top" aria-label="Retour en haut">↑</button>
+
+<section class="hero-short hero-short-30"><div class="hero-short-bg" aria-hidden="true"></div><div class="container hero-short-inner"><h1 class="hero-short-title reveal">Commençons quelque chose.</h1><p class="hero-short-sub reveal" data-delay="0.1">Pas de formulaire générique. On prend le temps de vous comprendre.</p></div></section>
+
+<main class="contact-page">
+  <div class="container">
+    <div class="contact-grid">
+      <!-- Col gauche -->
+      <div class="reveal-left">
+        <h2 class="contact-col-title">Retrouvez-nous</h2>
+        <div class="contact-info-list">
+          <div class="contact-info-item"><label>Localisation</label><p>📍 Ouagadougou, Burkina Faso</p></div>
+          <div class="contact-info-item">
+            <label>WhatsApp</label><p>+226 75 86 43 99</p>
+            <a href="https://wa.me/22675864399" class="cta-arrow" target="_blank" rel="noopener" data-track="Contact - WhatsApp">Écrire sur WhatsApp <span class="arrow">→</span></a>
+          </div>
+          <div class="contact-info-item">
+            <label>Email</label><p>wendclass@gmail.com</p>
+            <a href="mailto:wendclass@gmail.com" class="cta-arrow" data-track="Contact - Email">Envoyer un email <span class="arrow">→</span></a>
+          </div>
+        </div>
+        <div class="contact-socials">
+          <a href="https://www.linkedin.com/in/wendclasss" class="contact-social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</a>
+          <a href="https://www.behance.net/wendclass" class="contact-social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 7h-7V5h7v2zm1.726 10c-.442 1.297-2.029 3-5.101 3-3.074 0-5.051-2.053-5.051-5.003 0-2.945 2.007-5.005 5.063-5.005 3.001 0 4.625 1.997 4.625 4.917 0 .332-.027.71-.07.94H15.75c.128 1.143.766 1.715 1.97 1.715.714 0 1.386-.299 1.686-.775l2.32.211zM15.81 12.5h3.902c-.098-1.1-.692-1.787-1.919-1.787-1.134 0-1.79.618-1.983 1.787zM9.198 10.12c0-1.476-1.092-2.12-2.613-2.12H3v8h3.585c1.521 0 2.915-.644 2.915-2.12 0-.95-.47-1.57-1.183-1.9.596-.322.881-.92.881-1.86zM6.177 12.6H5v1.6h1.177c.52 0 .906-.25.906-.8 0-.55-.386-.8-.906-.8zm.085-2.4H5v1.5h1.262c.502 0 .844-.234.844-.75 0-.516-.342-.75-.844-.75z"/></svg> Behance</a>
+          <a href="https://web.facebook.com/wendclass" class="contact-social-link" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook</a>
+        </div>
+        <p class="contact-note">Nous répondons sous 24h.<br>Le premier échange est toujours sans engagement.</p>
+      </div>
+
+      <!-- Col droite — Formulaire -->
+      <div class="reveal-right">
+        <div class="contact-form" id="contact-form">
+          <div class="form-group">
+            <input type="text" id="f-name" name="name" autocomplete="name" required>
+            <label for="f-name">Votre nom</label>
+            <span class="form-error-msg" id="err-name">Veuillez entrer votre nom.</span>
+          </div>
+          <div class="form-group">
+            <input type="email" id="f-email" name="email" autocomplete="email" required>
+            <label for="f-email">Votre email</label>
+            <span class="form-error-msg" id="err-email">Adresse email invalide.</span>
+          </div>
+          <div class="form-group">
+            <input type="tel" id="f-phone" name="phone" autocomplete="tel">
+            <label for="f-phone">Téléphone / WhatsApp (optionnel)</label>
+          </div>
+          <div class="form-group">
+            <textarea id="f-message" name="message" rows="6" required></textarea>
+            <label for="f-message">Votre message</label>
+            <span class="form-error-msg" id="err-message">Veuillez écrire votre message.</span>
+          </div>
+          <button type="button" class="cta-solid" id="btn-send" data-track="Contact - Envoyer message">Envoyer le message</button>
+          <div class="form-success" id="form-success" role="alert">✓ Message envoyé. Nous vous répondons sous 24h.</div>
+          <div class="form-success" id="form-error-send" role="alert" style="background:#ff4466;display:none">Une erreur est survenue. Utilisez WhatsApp ou email directement.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer"><div class="container"><div class="footer-top"><div><div class="footer-logo" role="button"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></div><p class="footer-baseline" id="footer-baseline">L'identité visuelle qui s'impose.</p></div><nav><ul class="footer-links" id="footer-links-dynamic"><li><a href="index.html">Accueil</a></li><li><a href="works.html">Projets</a></li><li><a href="services.html">Services</a></li><li><a href="services.html">Services</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li><li><a href="about.html">À propos</a></li></ul></nav><div class="footer-socials"><a href="https://wa.me/22675864399" class="footer-social-link" aria-label="WhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a></div></div><hr class="footer-divider"><div class="footer-bottom"><p class="footer-copy" id="footer-copy">© 2025 Class S — Ouagadougou, Burkina Faso</p></div></div></footer>
+
+<script src="js/analytics.js"></script>
+<script src="js/analytics.js"></script>
+<script defer src="js/main.js"></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btn-send');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const name = document.getElementById('f-name');
+    const email = document.getElementById('f-email');
+    const phone = document.getElementById('f-phone');
+    const message = document.getElementById('f-message');
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let valid = true;
+
+    const showErr = (fid, eid, cond) => {
+      document.getElementById(eid).style.display = cond ? 'block' : 'none';
+      if (cond) valid = false;
+    };
+    showErr('f-name','err-name', name.value.trim()==='');
+    showErr('f-email','err-email', !emailRx.test(email.value.trim()));
+    showErr('f-message','err-message', message.value.trim()==='');
+    if (!valid) return;
+
+    btn.textContent = 'Envoi…'; btn.disabled = true;
+
+    // Save to localStorage
+    const msgs = JSON.parse(localStorage.getItem('cs_messages')||'[]');
+    msgs.unshift({
+      id: Date.now().toString(),
+      name: name.value.trim(),
+      email: email.value.trim(),
+      phone: phone?.value.trim()||'',
+      message: message.value.trim(),
+      timestamp: new Date().toISOString(),
+      read: false
+    });
+    localStorage.setItem('cs_messages', JSON.stringify(msgs));
+
+    // Try EmailJS
+    let ejSent = false;
+    try {
+      const cfg = JSON.parse(localStorage.getItem('cs_emailjs_config')||'{}');
+      if (cfg.publicKey && cfg.serviceId && cfg.templateId) {
+        emailjs.init(cfg.publicKey);
+        await emailjs.send(cfg.serviceId, cfg.templateId, {
+          from_name: name.value.trim(),
+          from_email: email.value.trim(),
+          phone: phone?.value.trim()||'Non renseigné',
+          message: message.value.trim()
+        });
+        ejSent = true;
+      }
+    } catch(e) { console.warn('EmailJS error:', e); }
+
+    // Fallback mailto if EmailJS not configured
+    if (!ejSent) {
+      const sub = encodeURIComponent('Nouveau message via Class S — ' + name.value.trim());
+      const body = encodeURIComponent(`De : ${name.value.trim()}\nEmail : ${email.value.trim()}\nTél : ${phone?.value.trim()||'—'}\n\n${message.value.trim()}`);
+      window.open(`mailto:wendclass@gmail.com?subject=${sub}&body=${body}`, '_blank');
+    }
+
+    document.getElementById('form-success').style.display = 'block';
+    btn.textContent = 'Message envoyé ✓'; btn.disabled = false;
+    name.value=''; email.value=''; phone.value=''; message.value='';
+    [name,email,phone,message].forEach(f=>{if(f)f.classList.remove('filled');});
+  });
+});
+</script>
+</body></html>

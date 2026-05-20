@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration — Class S</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ══ LOGIN (shown by default) ══ -->
+<div id="admin-login" class="admin-login" style="display:none">
+  <div class="admin-login-logo">
+    <img id="admin-logo-img" src="" alt="" onerror="this.style.display='none'">
+    Class S
+  </div>
+  <div class="admin-login-box">
+    <h1 class="admin-login-title">Administration</h1>
+    <p class="admin-login-sub">Identifiez-vous pour accéder au tableau de bord.</p>
+    <input type="text" id="login-username" class="admin-input" placeholder="Identifiant (sous-admin)" autocomplete="username">
+    <input type="password" id="login-password" class="admin-input" placeholder="Mot de passe" autocomplete="current-password">
+    <p class="login-error" id="login-error" role="alert"></p>
+    <button id="login-btn" class="admin-btn" onclick="handleLogin()">Accéder</button>
+    <p class="login-lockout" id="login-lockout" role="status"></p>
+    <p style="font-size:11px;color:#333;margin-top:16px;text-align:center">Session sécurisée — SHA-256</p>
+  </div>
+</div>
+
+<!-- ══ CROP MODAL ══ -->
+<div id="crop-modal" class="crop-modal-overlay" role="dialog" aria-modal="true" aria-label="Rogner l'image">
+  <div class="crop-modal-box">
+    <h3 class="crop-title">Rogner l'image</h3>
+    <p class="crop-hint">Faites glisser pour recadrer · Utilisez le curseur pour zoomer · L'image sera rognée en carré.</p>
+    <div class="crop-viewport" id="crop-viewport">
+      <img id="crop-img-layer" class="crop-img-layer" src="" alt="">
+      <div class="crop-frame">
+        <div class="crop-corner tl"></div><div class="crop-corner tr"></div>
+        <div class="crop-corner bl"></div><div class="crop-corner br"></div>
+      </div>
+    </div>
+    <div class="crop-zoom-row">
+      <label>Zoom</label>
+      <input type="range" id="crop-zoom-input" min="1" max="4" step="0.05" value="1">
+      <span class="crop-zoom-val" id="crop-zoom-val">0%</span>
+    </div>
+    <div class="crop-actions">
+      <button id="crop-cancel" class="admin-btn ghost">Annuler</button>
+      <button id="crop-confirm" class="admin-btn auto">✓ Valider le rognage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD (hidden by default) ══ -->
+<div id="admin-dashboard" style="display:none">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <img class="sidebar-logo-img" src="" alt="">
+      <span class="sidebar-logo-text">Class S</span>
+    </div>
+    <ul class="sidebar-nav" role="list">
+      <li><button data-panel="articles" class="active"><span class="nav-icon">📝</span><span>Articles</span></button></li>
+      <li><button data-panel="projects"><span class="nav-icon">🖼️</span><span>Projets</span></button></li>
+      <li><button data-panel="services"><span class="nav-icon">⚡</span><span>Services</span></button></li>
+      <li><button data-panel="pages"><span class="nav-icon">📄</span><span>Pages</span></button></li>
+      <li><button data-panel="clients"><span class="nav-icon">⭐</span><span>Clients & Avis</span></button></li>
+      <li><button data-panel="messages"><span class="nav-icon">✉️</span><span>Messages <span id="messages-count"></span></span></button></li>
+      <li><button data-panel="media"><span class="nav-icon">🗂️</span><span>Médias</span></button></li>
+      <li><button data-panel="footer"><span class="nav-icon">🦶</span><span>Footer</span></button></li>
+      <li><button data-panel="analytics"><span class="nav-icon">📊</span><span>Analytique</span></button></li>
+      <li><button data-panel="users"><span class="nav-icon">👥</span><span>Utilisateurs</span></button></li>
+      <li><button data-panel="settings"><span class="nav-icon">⚙️</span><span>Paramètres</span></button></li>
+    </ul>
+    <div class="sidebar-bottom">
+      <div style="font-size:12px;color:#333;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #1a1a1a">
+        <span id="sidebar-username" style="color:#aaa">Admin</span><br>
+        <span id="sidebar-usertype" style="font-size:11px;color:#444">—</span>
+      </div>
+      <a href="index.html"><span>← Retour au site</span></a>
+      <button class="logout-btn" onclick="logout()"><span>Déconnexion</span></button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- ARTICLES -->
+    <section id="panel-articles" class="admin-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Articles</h2>
+        <button id="btn-new-article" class="admin-btn auto">+ Nouvel article</button>
+      </div>
+      <div id="articles-feedback" class="feedback-msg"></div>
+      <div style="overflow-x:auto">
+        <table class="admin-table"><thead><tr><th>Titre</th><th>Catégorie</th><th>Publié le</th><th>Modifié</th><th>Actions</th></tr></thead>
+        <tbody id="articles-tbody"><tr><td colspan="5" style="text-align:center;color:#555;padding:40px">Chargement…</td></tr></tbody></table>
+      </div>
+      <div id="article-form-wrap" style="display:none">
+        <div class="admin-form">
+          <h3 class="admin-form-title" id="article-form-title">Nouvel article</h3>
+          <form id="article-form" novalidate>
+            <div class="admin-form-grid">
+              <div class="admin-form-group"><label>Titre *</label><input type="text" id="a-title" required></div>
+              <div class="admin-form-group"><label>Catégorie *</label>
+                <select id="a-category"><option value="Branding">Branding</option><option value="Stratégie">Stratégie</option><option value="Design">Design</option><option value="Inspiration">Inspiration</option><option value="Coulisses">Coulisses</option></select>
+              </div>
+              <div class="admin-form-group"><label>Date</label><input type="date" id="a-date"></div>
+              <div class="admin-form-group"><label>Heure</label><input type="time" id="a-time"></div>
+              <div class="admin-form-group full"><label>Image de couverture</label>
+                <div class="img-upload-wrap" id="article-cover-upload">
+                  <img class="img-thumb-preview" style="width:120px;height:80px;object-fit:cover" src="" alt="">
+                  <div class="img-upload-actions">
+                    <label class="btn-upload-file">📁 Importer une image<input type="file" accept="image/*" style="display:none"></label>
+                    <button type="button" class="btn-remove-img">✕ Retirer l'image</button>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-form-group"><label>Auteur</label>
+                <select id="a-author"><option value="">— Sélectionner —</option><option value="scott">Scott Nana</option></select>
+              </div>
+              <div class="admin-form-group full"><label>Hashtags (virgule)</label><input type="text" id="a-hashtags" placeholder="branding, design, Ouagadougou"></div>
+            </div>
+            <details style="margin-bottom:18px;background:var(--ab2);border:1px solid var(--bdr);padding:16px">
+              <summary style="cursor:pointer;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--am)">⚡ SEO — Référencement naturel</summary>
+              <div class="admin-form-grid" style="margin-top:14px">
+                <div class="admin-form-group"><label>Titre SEO <span id="seo-title-count" style="color:#555;font-weight:300;text-transform:none;letter-spacing:0">(0 car.)</span></label><input type="text" id="seo-title-input" placeholder="50-60 caractères idéal"></div>
+                <div class="admin-form-group"><label>Mot-clé de focus</label><input type="text" id="seo-keyword" placeholder="ex: identité visuelle Burkina"></div>
+                <div class="admin-form-group full"><label>Meta description <span id="seo-desc-count" style="color:#555;font-weight:300;text-transform:none;letter-spacing:0">(0 car.)</span></label><textarea id="seo-meta-desc" rows="2" placeholder="150-160 caractères idéal…"></textarea></div>
+              </div>
+              <div class="seo-panel">
+                <p class="seo-panel-title">Score SEO temps réel</p>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px"><span class="seo-score-num" id="seo-score-num">—</span><span style="font-size:14px;color:var(--am)" id="seo-score-label">/100</span></div>
+                <div class="seo-score-bar"><div class="seo-score-fill" id="seo-score-fill" style="width:0%"></div></div>
+                <div class="seo-items" id="seo-items" style="margin-top:14px"></div>
+              </div>
+            </details>
+            <div class="admin-form-group full"><label>Contenu *</label><div id="article-quill" style="min-height:320px"></div></div>
+            <div class="admin-form-actions">
+              <button type="submit" class="admin-btn auto">Publier</button>
+              <button type="button" id="btn-draft" class="admin-btn ghost">Brouillon</button>
+              <button type="button" id="btn-cancel-article" class="admin-btn ghost">Annuler</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJETS -->
+    <section id="panel-projects" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Projets</h2><button id="btn-new-project" class="admin-btn auto">+ Nouveau projet</button></div>
+      <div id="projects-feedback" class="feedback-msg"></div>
+      <div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Actions</th></tr></thead><tbody id="projects-tbody"></tbody></table></div>
+      <div id="project-form-wrap" style="display:none">
+        <div class="admin-form">
+          <h3 class="admin-form-title">Détails du projet</h3>
+          <form id="project-form" novalidate>
+            <div class="admin-form-grid">
+              <div class="admin-form-group"><label>Titre *</label><input type="text" id="p-title" required></div>
+              <div class="admin-form-group"><label>Catégorie</label><select id="p-category"><option value="Identité Visuelle">Identité Visuelle</option><option value="Direction Artistique">Direction Artistique</option><option value="Design Éditorial">Design Éditorial</option><option value="Branding">Branding</option></select></div>
+              <div class="admin-form-group"><label>Mois</label><input type="text" id="p-month" placeholder="ex: Mars"></div>
+              <div class="admin-form-group"><label>Année</label><input type="number" id="p-year" min="2020" max="2099"></div>
+              <div class="admin-form-group full"><label>Image du projet</label>
+                <div class="img-upload-wrap" id="project-img-upload">
+                  <img class="img-thumb-preview" style="width:140px;height:90px;object-fit:cover" src="" alt="">
+                  <div class="img-upload-actions">
+                    <label class="btn-upload-file">📁 Importer une image<input type="file" accept="image/*" style="display:none"></label>
+                    <button type="button" class="btn-remove-img">✕ Retirer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="admin-form-group"><label>Description</label><textarea id="p-description" rows="4"></textarea></div>
+            <div class="admin-form-actions"><button type="submit" class="admin-btn auto">Sauvegarder</button><button type="button" id="btn-cancel-project" class="admin-btn ghost">Annuler</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="panel-services" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Services</h2><button class="admin-btn auto" onclick="addService()">+ Ajouter</button></div>
+      <div id="services-feedback" class="feedback-msg"></div>
+      <p style="font-size:13px;color:#555;margin-bottom:20px">Ces services apparaissent sur la page d'accueil et la page Services.</p>
+      <div id="services-editor"></div>
+    </section>
+
+    <!-- PAGES -->
+    <section id="panel-pages" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Contenu des pages</h2><button id="btn-save-pages" class="admin-btn auto">Sauvegarder tout</button></div>
+      <div id="pages-feedback" class="feedback-msg"></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Titre héro</span><textarea id="page-hero_title" rows="2"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Sous-titre héro</span><textarea id="page-hero_sub" rows="2"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Citation manifeste</span><textarea id="page-manifeste_quote" rows="2"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Corps manifeste</span><textarea id="page-manifeste_body" rows="3"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Titre CTA</span><textarea id="page-cta_title" rows="1"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Accueil — Sous-titre CTA</span><textarea id="page-cta_sub" rows="2"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">À propos — Histoire</span><textarea id="page-about_story" rows="5"></textarea></div>
+      <div class="page-section-editor"><span class="page-section-label">Services — Sous-titre page</span><textarea id="page-services_page_sub" rows="2"></textarea></div>
+    </section>
+
+    <!-- CLIENTS & AVIS -->
+    <section id="panel-clients" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Clients & Avis</h2></div>
+      <div id="clients-feedback" class="feedback-msg"></div>
+      <div class="inner-tabs">
+        <button class="inner-tab active" onclick="switchTab('clients-tabs','tab-clients',this)">Clients</button>
+        <button class="inner-tab" onclick="switchTab('clients-tabs','tab-testimonials',this)">Témoignages</button>
+        <button class="inner-tab" onclick="switchTab('clients-tabs','tab-team',this)">Équipe</button>
+      </div>
+      <div id="clients-tabs">
+        <div id="tab-clients" class="inner-tab-panel active"><button class="admin-btn auto" id="btn-add-client" style="margin-bottom:16px">+ Ajouter un client</button><p style="font-size:12px;color:#555;margin-bottom:16px">💡 Le logo est affiché tel quel — pas de filtre appliqué. Préparez votre logo sur fond blanc avant d'importer.</p><div id="clients-editor"></div></div>
+        <div id="tab-testimonials" class="inner-tab-panel"><button class="admin-btn auto" id="btn-add-testimonial" style="margin-bottom:16px">+ Ajouter un témoignage</button><p style="font-size:12px;color:#555;margin-bottom:16px">💡 Ajoutez le lien LinkedIn pour afficher le badge "Témoignage vérifiable".</p><div id="testimonials-editor"></div></div>
+        <div id="tab-team" class="inner-tab-panel"><button class="admin-btn auto" id="btn-add-team" style="margin-bottom:16px">+ Ajouter un membre</button><p style="font-size:12px;color:#555;margin-bottom:16px">💡 Les photos d'équipe sont automatiquement rognées en carré.</p><div id="team-editor"></div></div>
+      </div>
+    </section>
+
+    <!-- MESSAGES -->
+    <section id="panel-messages" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Messages</h2>
+        <div class="panel-actions"><button class="admin-btn ghost" onclick="exportMessages('all')">↓ Tout</button><button class="admin-btn ghost" onclick="exportMessages('week')">↓ Semaine</button><button class="admin-btn ghost" onclick="exportMessages('month')">↓ Mois</button></div>
+      </div>
+      <p style="font-size:12px;color:#555;margin-bottom:16px">Messages reçus via le formulaire. Configurez EmailJS (Paramètres) pour recevoir les messages en temps réel par email.</p>
+      <div id="messages-list"></div>
+      <div id="message-detail"></div>
+    </section>
+
+    <!-- MÉDIAS -->
+    <section id="panel-media" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Médias</h2></div>
+      <div id="media-feedback" class="feedback-msg"></div>
+
+      <div class="media-preview-card">
+        <p class="media-preview-title">Favicon</p>
+        <p class="media-preview-desc">Icône dans l'onglet navigateur. PNG 32×32 ou ICO recommandé. Max 200 Ko.</p>
+        <span class="media-current-label">Aperçu actuel :</span>
+        <img id="favicon-preview" class="media-favicon-preview" src="" alt="Favicon actuel" onerror="this.classList.remove('loaded')">
+        <div><input type="file" id="favicon-upload" accept="image/*" style="display:none"><label for="favicon-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer favicon</label></div>
+      </div>
+
+      <div class="media-preview-card">
+        <p class="media-preview-title">Logo</p>
+        <p class="media-preview-desc">Logo affiché dans la navbar, le footer et l'admin. SVG ou PNG transparent recommandé. Max 500 Ko.<br><strong style="color:#f59e0b">⚠️</strong> Après upload, rechargez les pages du site pour voir le changement.</p>
+        <span class="media-current-label">Aperçu actuel :</span>
+        <img id="logo-preview" class="media-img-preview" src="" alt="Logo actuel" onerror="this.classList.remove('loaded')">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div><input type="file" id="logo-upload" accept="image/*" style="display:none"><label for="logo-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer logo</label></div>
+          <button id="btn-remove-logo" class="admin-btn danger sm" style="width:auto">✕ Supprimer le logo</button>
+        </div>
+      </div>
+
+      <div class="media-preview-card">
+        <p class="media-preview-title">Dépliant de services (PDF)</p>
+        <p class="media-preview-desc">Téléchargeable depuis la page Services. Max 5 Mo.</p>
+        <span class="media-current-label">Fichier actuel :</span>
+        <p id="brochure-name" class="media-text-preview">Aucun fichier importé.</p>
+        <div><input type="file" id="brochure-upload" accept=".pdf,application/pdf" style="display:none"><label for="brochure-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer PDF</label></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <section id="panel-footer" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Footer</h2><button id="btn-save-footer" class="admin-btn auto">Sauvegarder</button></div>
+      <div id="footer-feedback" class="feedback-msg"></div>
+      <div class="admin-form"><div class="admin-form-group"><label>Baseline (sous le logo)</label><input type="text" id="footer-baseline-input"></div><div class="admin-form-group"><label>Mentions légales</label><input type="text" id="footer-copy-input"></div></div>
+      <div class="admin-form" style="margin-top:0"><h3 class="admin-form-title">Liens de navigation du footer</h3><div id="footer-links-editor"></div><div style="display:flex;gap:10px;margin-top:14px"><button class="admin-btn ghost" onclick="addFooterLink()">+ Ajouter</button><button class="admin-btn auto" onclick="saveFooterLinks()">Sauvegarder les liens</button></div></div>
+    </section>
+
+    <!-- ANALYTIQUE -->
+    <section id="panel-analytics" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Analytique</h2>
+        <div class="panel-actions"><button id="btn-export-analytics" class="admin-btn auto">↓ Export CSV</button><button id="btn-reset-analytics" class="admin-btn ghost">Réinitialiser</button></div>
+      </div>
+      <p style="font-size:12px;color:#555;margin-bottom:24px">Statistiques collectées localement depuis ce navigateur.</p>
+
+      <!-- KPIs -->
+      <div class="analytics-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-total-views">—</div><div class="stat-label">Vues totales</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-unique-visitors">—</div><div class="stat-label">Visiteurs uniques</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-unique-sessions">—</div><div class="stat-label">Sessions</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-avg-duration">—</div><div class="stat-label">Durée moy.</div></div>
+      </div>
+
+      <!-- Devices -->
+      <div class="analytics-section" style="margin-bottom:16px">
+        <p class="analytics-section-title">Appareils</p>
+        <div style="display:flex;gap:32px;flex-wrap:wrap">
+          <div><span style="font-size:22px">🖥️</span><br><span style="font-size:20px;font-weight:600;color:var(--ap)" id="stat-desktop-pct">—</span><br><span style="font-size:11px;color:var(--am)">Desktop</span></div>
+          <div><span style="font-size:22px">📱</span><br><span style="font-size:20px;font-weight:600;color:var(--ap)" id="stat-mobile-pct">—</span><br><span style="font-size:11px;color:var(--am)">Mobile</span></div>
+          <div><span style="font-size:22px">📟</span><br><span style="font-size:20px;font-weight:600;color:var(--ap)" id="stat-tablet-pct">—</span><br><span style="font-size:11px;color:var(--am)">Tablette</span></div>
+        </div>
+      </div>
+
+      <!-- Daily chart -->
+      <div class="analytics-section">
+        <p class="analytics-section-title">Vues — 14 derniers jours</p>
+        <div id="analytics-daily"><p style="color:#555;font-size:13px">Aucune donnée.</p></div>
+      </div>
+
+      <!-- Pages + Clicks -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="analytics-section"><p class="analytics-section-title">Pages les plus visitées</p><div id="analytics-pages"><p style="color:#555;font-size:13px">Aucune donnée.</p></div></div>
+        <div class="analytics-section"><p class="analytics-section-title">Boutons les plus cliqués</p><div id="analytics-clicks"><p style="color:#555;font-size:13px">Aucun clic.</p></div></div>
+      </div>
+
+      <!-- Visitors -->
+      <div class="analytics-section" style="margin-top:16px">
+        <p class="analytics-section-title">Visiteurs (par ID de session)</p>
+        <div id="analytics-visitors"></div>
+      </div>
+
+      <!-- Referrers -->
+      <div class="analytics-section" style="margin-top:16px">
+        <p class="analytics-section-title">Sources de trafic externes</p>
+        <div id="analytics-referrers"><p style="color:#555;font-size:13px">Aucune source externe enregistrée.</p></div>
+      </div>
+    </section>
+
+    <!-- UTILISATEURS -->
+    <section id="panel-users" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Utilisateurs</h2><button id="btn-new-user" class="admin-btn auto">+ Nouvel utilisateur</button></div>
+      <div id="users-feedback" class="feedback-msg"></div>
+      <div style="background:rgba(102,0,204,.06);border:1px solid rgba(102,0,204,.2);padding:16px;margin-bottom:20px;font-size:13px;color:#aaa;line-height:1.7">
+        <strong style="color:var(--ap)">Headmaster :</strong> compte maître, accès total, non modifiable depuis l'interface.<br>
+        Créez des sous-administrateurs avec des permissions et durées d'accès spécifiques.
+      </div>
+      <div id="users-list"></div>
+      <div id="user-form-wrap" style="display:none">
+        <div class="admin-form"><h3 class="admin-form-title">Créer / modifier un utilisateur</h3>
+          <form id="user-form" novalidate>
+            <div class="admin-form-grid">
+              <div class="admin-form-group"><label>Identifiant *</label><input type="text" id="u-username" placeholder="ex: graphiste1" required autocomplete="off"></div>
+              <div class="admin-form-group"><label>Mot de passe *</label><input type="password" id="u-password" placeholder="Laisser vide = inchangé" autocomplete="new-password"></div>
+              <div class="admin-form-group"><label>Date d'expiration (optionnel)</label><input type="date" id="u-expiry"></div>
+              <div class="admin-form-group" style="align-items:flex-start">
+                <label>Statut</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--at);cursor:pointer;margin-top:4px"><input type="checkbox" id="u-active" checked style="accent-color:var(--ap)"> Compte actif</label>
+              </div>
+            </div>
+            <div class="admin-form-group"><label>Permissions d'accès</label>
+              <div class="perms-grid">
+                <label class="perm-check"><input type="checkbox" id="perm-articles"> Articles</label>
+                <label class="perm-check"><input type="checkbox" id="perm-projects"> Projets</label>
+                <label class="perm-check"><input type="checkbox" id="perm-services"> Services</label>
+                <label class="perm-check"><input type="checkbox" id="perm-pages"> Pages</label>
+                <label class="perm-check"><input type="checkbox" id="perm-clients"> Clients & Avis</label>
+                <label class="perm-check"><input type="checkbox" id="perm-messages"> Messages</label>
+                <label class="perm-check"><input type="checkbox" id="perm-media"> Médias</label>
+                <label class="perm-check"><input type="checkbox" id="perm-footer"> Footer</label>
+                <label class="perm-check"><input type="checkbox" id="perm-analytics"> Analytique</label>
+                <label class="perm-check"><input type="checkbox" id="perm-settings"> Paramètres</label>
+              </div>
+            </div>
+            <div class="admin-form-actions"><button type="submit" class="admin-btn auto">Sauvegarder</button><button type="button" id="btn-cancel-user" class="admin-btn ghost">Annuler</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARAMÈTRES -->
+    <section id="panel-settings" class="admin-panel">
+      <div class="panel-header"><h2 class="panel-title">Paramètres</h2></div>
+      <div id="settings-feedback" class="feedback-msg"></div>
+
+      <div class="settings-section">
+        <h3 class="settings-title">📧 EmailJS — Emails en temps réel</h3>
+        <p class="settings-desc">Recevez les messages du formulaire de contact directement sur Gmail, gratuitement (200/mois).<br>
+          1. Créez un compte sur <a href="https://www.emailjs.com" target="_blank" style="color:var(--ap)">emailjs.com</a><br>
+          2. Connectez votre Gmail dans "Email Services"<br>
+          3. Créez un template avec les variables : <code style="color:var(--ap);font-size:11px">{{from_name}} {{from_email}} {{phone}} {{message}}</code><br>
+          4. Copiez vos IDs ci-dessous.
+        </p>
+        <div class="admin-form-grid">
+          <div class="admin-form-group"><label>Public Key</label><input type="text" id="ej-public-key" placeholder="user_XXXXXXXXX"></div>
+          <div class="admin-form-group"><label>Service ID</label><input type="text" id="ej-service-id" placeholder="service_XXXXXX"></div>
+          <div class="admin-form-group full"><label>Template ID</label><input type="text" id="ej-template-id" placeholder="template_XXXXXX"></div>
+        </div>
+        <button id="btn-save-emailjs" class="admin-btn auto">Sauvegarder EmailJS</button>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="settings-title">↓ Exporter les données</h3>
+        <p class="settings-desc">Téléchargez toutes vos données en JSON. Sauvegardez régulièrement.</p>
+        <button id="btn-export" class="admin-btn auto">↓ Exporter (JSON)</button>
+      </div>
+
+      <div class="settings-section">
+        <h3 class="settings-title">↑ Importer des données</h3>
+        <p class="settings-desc" style="color:var(--err)">⚠️ Remplace toutes les données actuelles.</p>
+        <label class="admin-btn ghost" style="cursor:pointer;display:inline-flex" for="import-file">↑ Importer JSON</label>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+      </div>
+
+      <div class="settings-section" style="background:transparent;border:none;padding:0">
+        <a href="index.html" class="admin-btn auto" style="display:inline-flex">← Retourner au site</a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// SEO char counters
+document.addEventListener('DOMContentLoaded',()=>{
+  const t=document.getElementById('seo-title-input');const tc=document.getElementById('seo-title-count');
+  const d=document.getElementById('seo-meta-desc');const dc=document.getElementById('seo-desc-count');
+  if(t&&tc)t.addEventListener('input',()=>{const l=t.value.length;tc.textContent=`(${l} car. ${l>=50&&l<=60?'✓':l<50?'— trop court':'— trop long'})`;tc.style.color=l>=50&&l<=60?'#22c55e':l>=40&&l<=70?'#f59e0b':'#ef4444';});
+  if(d&&dc)d.addEventListener('input',()=>{const l=d.value.length;dc.textContent=`(${l} car. ${l>=150&&l<=160?'✓':l<150?'— trop court':'— trop long'})`;dc.style.color=l>=150&&l<=160?'#22c55e':l>=130&&l<=170?'#f59e0b':'#ef4444';});
+});
+// Keydown login
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('login-password')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+<script src="js/main.js"></script>
+<script src="js/analytics.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
