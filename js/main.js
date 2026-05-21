@@ -234,7 +234,18 @@ document.querySelectorAll('.hero-title .word').forEach((w,i)=>{w.style.animation
 
   /* 7. Contenu de page dynamique */
   if (pc) {
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.innerHTML = val.replace(/\n/g,'<br>'); };
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (!el || !val) return;
+      // hero-title contient des <span class="word"> pour l'animation — les reconstruire
+      if (id === 'hero-title-dynamic') {
+        const words = val.replace(/\n/g, ' ').trim().split(/\s+/);
+        el.innerHTML = words.map(w => `<span class="word">${w}</span>`).join('');
+        el.querySelectorAll('.word').forEach((w, i) => { w.style.animationDelay = (.3 + i * .08) + 's'; });
+      } else {
+        el.innerHTML = val.replace(/\n/g, '<br>');
+      }
+    };
     set('hero-title-dynamic', pc.hero_title); set('hero-sub-dynamic', pc.hero_sub);
     set('manifeste-quote-dynamic', pc.manifeste_quote); set('manifeste-body-dynamic', pc.manifeste_body);
     set('cta-title-dynamic', pc.cta_title); set('cta-sub-dynamic', pc.cta_sub);

@@ -47,8 +47,8 @@
       </article>`;
   }
 
-  function render(filterCat) {
-    load();
+  async function render(filterCat) {
+    await load();
     filtered = filterCat === 'Tout' ? [...projects] : projects.filter(p => p.category === filterCat);
     if (!filtered.length) {
       grid.innerHTML = '<p style="color:#888;grid-column:1/-1;text-align:center;padding:60px 0;">Aucun projet dans cette catégorie.</p>';

@@ -96,6 +96,14 @@ const S = {
   savePageContent:  v => { DB.pageContent  = v; fbSave('pageContent', v); },
   saveMessages:     v => { DB.messages     = v; fbSave('messages', v); },
   saveAdmins:       v => { DB.admins       = v; fbSave('admins', v); },
+
+  // Lecture/écriture localStorage générique (pour settings non-Firestore)
+  get: (key, def = null) => {
+    try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : def; } catch { return def; }
+  },
+  set: (key, val) => {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  },
 };
 
 /* ════════════════════════════════════════
@@ -113,9 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bar) bar.style.display = 'block';
     loadFromFirestore().then(() => {
       if (bar) bar.style.display = 'none';
-      // Rafraîchir les listes visibles avec les vraies données
+      // Rafraîchir toutes les listes visibles avec les vraies données Firestore
       if (typeof renderArticlesList === 'function') renderArticlesList();
       if (typeof renderProjectsList === 'function') renderProjectsList();
+      if (typeof renderClients === 'function') renderClients();
+      if (typeof renderTestimonials === 'function') renderTestimonials();
+      if (typeof renderServices === 'function') renderServices();
+      if (typeof renderTeam === 'function') renderTeam();
     }).catch(() => { if (bar) bar.style.display = 'none'; });
   } else {
     showLogin();

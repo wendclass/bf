@@ -3,9 +3,9 @@
    Initialise Firebase et expose window._fbReady (Promise)
    Utilisé par toutes les pages publiques ET l'admin.
 ============================================================ */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc }
-  from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
+  from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey:            'AIzaSyAUjEq5gT_BewDShDjHe_zsSxIiw_k_GBg',
@@ -19,9 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// Promise exposée globalement — attendue par main.js, works.js, blog.js, admin.js
-window._fbReady = Promise.resolve({
-
+const fbApi = {
   /** Charge une clé depuis Firestore. Retourne null si absente. */
   async load(key) {
     const snap = await getDoc(doc(db, 'site', key));
@@ -49,4 +47,12 @@ window._fbReady = Promise.resolve({
       updatedAt: new Date().toISOString()
     });
   }
-});
+};
+
+// Résoudre la Promise deferred créée par le script inline dans le HTML
+// Si _fbReadyResolve existe, on l'utilise; sinon on set directement
+if (typeof window._fbReadyResolve === 'function') {
+  window._fbReadyResolve(fbApi);
+} else {
+  window._fbReady = Promise.resolve(fbApi);
+}
