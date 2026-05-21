@@ -1,11 +1,14 @@
 /* ============================================================
    js/firebase.js — Class S
-   Initialise Firebase et expose window._fbReady (Promise)
-   Utilisé par toutes les pages publiques ET l'admin.
+   Firebase Firestore + Storage
+   Expose window._fbReady (Promise → fbApi)
 ============================================================ */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc }
   from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL }
+  from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey:            'AIzaSyAUjEq5gT_BewDShDjHe_zsSxIiw_k_GBg',
@@ -16,8 +19,9 @@ const firebaseConfig = {
   appId:             '1:205743085246:web:4dfe5ff65951efb61470ef'
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app     = initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const storage = getStorage(app);
 
 const fbApi = {
   /** Charge une clé depuis Firestore. Retourne null si absente. */
@@ -46,11 +50,22 @@ const fbApi = {
       value,
       updatedAt: new Date().toISOString()
     });
+  },
+
+  /**
+   * Upload un fichier (dataURL base64) vers Firebase Storage.
+   * Retourne l'URL publique de téléchargement.
+   * path exemple : "team/scott.jpg", "projects/koulba-1.jpg"
+   */
+  async uploadImage(path, dataURL) {
+    const resp = await fetch(dataURL);
+    const blob = await resp.blob();
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, blob, { contentType: blob.type || 'image/jpeg' });
+    return await getDownloadURL(storageRef);
   }
 };
 
-// Résoudre la Promise deferred créée par le script inline dans le HTML
-// Si _fbReadyResolve existe, on l'utilise; sinon on set directement
 if (typeof window._fbReadyResolve === 'function') {
   window._fbReadyResolve(fbApi);
 } else {

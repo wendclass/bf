@@ -422,3 +422,81 @@ input,textarea,select{font-family:var(--font-ui)}
   #back-to-top{bottom:18px;right:18px}
 }
 @media(max-width:480px){.hero-title{font-size:clamp(28px,10vw,42px)}.team-grid{grid-template-columns:1fr}}
+
+/* ══ BOUTON FLOTTANT CALENDLY ══ */
+.calendly-float {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 8000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary, #6600CC);
+  color: #fff;
+  border: none;
+  padding: 13px 20px;
+  font-family: var(--font-ui, 'Jost', sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(102,0,204,.35);
+  transition: background .3s, transform .2s, box-shadow .3s;
+}
+.calendly-float:hover {
+  background: #9933FF;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(102,0,204,.5);
+}
+.calendly-float-icon { font-size: 16px; }
+@media (max-width: 480px) {
+  .calendly-float { bottom: 18px; right: 18px; padding: 11px 15px; }
+  .calendly-float-label { display: none; }
+  .calendly-float-icon { font-size: 20px; }
+}
+
+/* ══ MODAL PROJET — image réelle ══ */
+.project-modal-cover-wrap {
+  width: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 75vh;
+  overflow: hidden;
+}
+.project-modal-img {
+  width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  display: block;
+}
+/* fallback gradient quand pas d'image */
+.project-modal-cover {
+  width: 100%;
+  height: 340px;
+  display: block;
+}
+/* Lien Behance dans modal */
+.modal-behance-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  transition: opacity .2s;
+}
+.modal-behance-link:hover { opacity: .7; }
+@media (max-width: 600px) {
+  .project-modal-cover-wrap { max-height: 55vw; }
+  .project-modal-img { max-height: 55vw; }
+}

@@ -249,3 +249,71 @@ html,body{height:100%;background:var(--ab);color:var(--at);font-family:'Jost',sa
 
 @media(max-width:900px){.admin-sidebar{width:60px;overflow:hidden}.admin-sidebar .sidebar-logo-text,.admin-sidebar .sidebar-nav button span:not(.nav-icon),.admin-sidebar .sidebar-bottom a span,.admin-sidebar .sidebar-bottom button span{display:none!important}.admin-sidebar .sidebar-logo{padding:16px;justify-content:center}.admin-sidebar .sidebar-nav button{justify-content:center;padding:14px}.admin-main{margin-left:60px}.analytics-grid{grid-template-columns:repeat(2,1fr)}.admin-form-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.admin-panel{padding:18px}.analytics-grid{grid-template-columns:1fr}.panel-header{flex-direction:column;align-items:flex-start}}
+
+/* ══ ADMIN RESPONSIVE MOBILE (≤600px) ══
+   La sidebar est remplacée par une bottom tab bar.
+   Le contenu prend toute la largeur.
+*/
+@media (max-width: 600px) {
+  /* Cacher la sidebar entièrement */
+  .admin-sidebar { display: none !important; }
+
+  /* Contenu prend toute la largeur */
+  .admin-main { margin-left: 0 !important; padding-bottom: 72px; }
+  .admin-panel { padding: 16px !important; }
+
+  /* Bottom tab bar */
+  .admin-bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--as);
+    border-top: 1px solid var(--bdr);
+    display: flex;
+    align-items: stretch;
+    z-index: 200;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .admin-bottom-nav::-webkit-scrollbar { display: none; }
+  .admin-bottom-nav button {
+    flex: 0 0 auto;
+    min-width: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--am);
+    font-family: var(--font-ui, 'Jost', sans-serif);
+    font-size: 9px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 6px 8px;
+    transition: color .2s;
+    white-space: nowrap;
+  }
+  .admin-bottom-nav button .nav-icon { font-size: 18px; line-height: 1; }
+  .admin-bottom-nav button.active { color: var(--ap); }
+  .admin-bottom-nav button:hover  { color: var(--at); }
+
+  /* Formulaire grille full width */
+  .admin-form-grid { grid-template-columns: 1fr !important; }
+  .panel-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .panel-title { font-size: 22px; }
+
+  /* Tables scrollables */
+  .admin-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Analytics grid */
+  .analytics-grid { grid-template-columns: repeat(2,1fr) !important; }
+}
+
+/* Masquer bottom nav sur desktop */
+@media (min-width: 601px) {
+  .admin-bottom-nav { display: none !important; }
+}

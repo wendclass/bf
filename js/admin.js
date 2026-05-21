@@ -254,11 +254,8 @@ function initTabs(){
 /* ════════════════════════════════════════
    IMAGE UPLOAD HELPER (FileReader → base64)
 ════════════════════════════════════════ */
-/* ── Image compression utility ──────────────────────────────
-   Resize to max 1600px longest side, JPEG 0.82 quality.
-   Returns a Promise<base64string>.
-──────────────────────────────────────────────────────────── */
-function compressImage(dataURL,maxPx=1600,quality=0.82){
+/* ── Image compression — max 800px, JPEG 0.72 ── */
+function compressImage(dataURL,maxPx=800,quality=0.72){
   return new Promise(resolve=>{
     const img=new Image();
     img.onload=()=>{
@@ -654,7 +651,8 @@ function openProjectForm(p){
   document.getElementById('p-year').value=p?.year||new Date().getFullYear();
   document.getElementById('p-month').value=p?.month||'';
   document.getElementById('p-description').value=p?.description||'';
-  // Load images: support both new `images[]` and legacy `image` field
+  document.getElementById('p-behance').value=p?.behanceUrl||'';
+  // Load images
   projectImages=p?.images?.length?[...p.images]:(p?.image?[p.image]:[]);
   renderProjectImagesGrid();
   document.getElementById('project-form-wrap').scrollIntoView({behavior:'smooth',block:'start'});
@@ -676,6 +674,7 @@ function saveProject(){
     images:[...projectImages],          // new: full array
     image:projectImages[0]||'',         // legacy compat: first image as main
     description:document.getElementById('p-description').value.trim(),
+    behanceUrl:document.getElementById('p-behance')?.value.trim()||'',
     gradient:'linear-gradient(135deg,#6600CC 0%,#0A0A0A 100%)'
   };
   if(editingProjectId){const i=projects.findIndex(p=>p.id===editingProjectId);if(i>=0)projects[i]=proj;else projects.unshift(proj);}
@@ -762,17 +761,59 @@ function renderTeam(){
   const wrap=document.getElementById('team-editor');if(!wrap)return;
   wrap.innerHTML=S.team().map(m=>`<div class="testimonial-edit" data-id="${m.id}"><div class="admin-form-grid"><div class="admin-form-group"><label>Nom complet</label><input type="text" class="tm-name" value="${m.name||''}"></div><div class="admin-form-group"><label>Rôle / Poste</label><input type="text" class="tm-role" value="${m.role||''}"></div><div class="admin-form-group"><label>Photo (carrée — rognage auto)</label><div class="img-upload-wrap"><img class="img-thumb-preview tm-photo-preview ${m.photo?'loaded':''}" src="${m.photo||''}" style="width:80px;height:80px;object-fit:cover;border-radius:4px"><div class="img-upload-actions"><label class="btn-upload-file">📁 Importer & rogner<input type="file" accept="image/*" style="display:none" class="tm-photo-file"></label></div></div></div><div class="admin-form-group"><label>LinkedIn</label><input type="url" class="tm-linkedin" value="${m.social?.linkedin||''}"></div></div><div class="admin-form-group"><label>Biographie</label><textarea class="tm-bio" rows="4">${m.bio||''}</textarea></div><div class="admin-form-group"><label>Certifications (virgule)</label><input type="text" class="tm-certs" value="${(m.certs||[]).join(', ')}"></div><div style="display:flex;gap:8px;margin-top:10px"><button class="admin-btn ghost sm" onclick="saveTeamMember('${m.id}',this)">Sauvegarder</button><button class="admin-btn danger sm" onclick="deleteTeamMember('${m.id}')">Supprimer</button></div></div>`).join('');
   // File handlers with crop
-  wrap.querySelectorAll('.tm-photo-file').forEach(inp=>{
-    const thumb=inp.closest('.img-upload-wrap').querySelector('.tm-photo-preview');
-    inp.addEventListener('change',()=>{
-      const f=inp.files[0];if(!f)return;
-      const r=new FileReader();
-      r.onload=e=>openCropModal(e.target.result,croppedData=>{if(thumb){thumb.src=croppedData;thumb.classList.add('loaded');}});
+  wrap.querySelectorAll('.tm-photo-file').forEach(inp => {
+    const thumb = inp.closest('.img-upload-wrap').querySelector('.tm-photo-preview');
+    inp.addEventListener('change', () => {
+      const f = inp.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = e => openCropModal(e.target.result, async croppedData => {
+        // Compresser avant stockage
+        const compressed = await compressImage(croppedData, 800, 0.72);
+        if (thumb) { thumb.src = compressed; thumb.classList.add('loaded'); }
+      });
       r.readAsDataURL(f);
     });
   });
 }
-window.saveTeamMember=(id,btn)=>{const c=btn.closest('[data-id]');const team=S.team();const m=team.find(x=>x.id===id);if(!m)return;m.name=c.querySelector('.tm-name').value.trim();m.role=c.querySelector('.tm-role').value.trim();m.bio=c.querySelector('.tm-bio').value.trim();m.certs=c.querySelector('.tm-certs').value.split(',').map(x=>x.trim()).filter(Boolean);if(!m.social)m.social={};m.social.linkedin=c.querySelector('.tm-linkedin').value.trim();const ph=c.querySelector('.tm-photo-preview');if(ph?.src&&ph.src!==location.href)m.photo=ph.src;S.saveTeam(team);feedback('clients-feedback','Membre sauvegardé.','success');};
+window.saveTeamMember = async (id, btn) => {
+  const c = btn.closest('[data-id]');
+  const team = S.team();
+  const m = team.find(x => x.id === id);
+  if (!m) return;
+  m.name  = c.querySelector('.tm-name').value.trim();
+  m.role  = c.querySelector('.tm-role').value.trim();
+  m.bio   = c.querySelector('.tm-bio').value.trim();
+  m.certs = c.querySelector('.tm-certs').value.split(',').map(x=>x.trim()).filter(Boolean);
+  if (!m.social) m.social = {};
+  m.social.linkedin = c.querySelector('.tm-linkedin').value.trim();
+
+  const ph = c.querySelector('.tm-photo-preview');
+  if (ph?.src && ph.src !== location.href && ph.src.startsWith('data:')) {
+    // Tenter upload Firebase Storage — sinon garder base64
+    try {
+      const FB = await (window._fbReady || Promise.resolve(null));
+      if (FB && FB.uploadImage) {
+        btn.textContent = 'Upload…';
+        btn.disabled = true;
+        const url = await FB.uploadImage(`team/${id}_${Date.now()}.jpg`, ph.src);
+        m.photo = url;
+      } else {
+        m.photo = ph.src; // fallback base64
+      }
+    } catch (e) {
+      console.warn('Storage upload failed, using base64:', e);
+      m.photo = ph.src;
+    } finally {
+      btn.textContent = 'Sauvegarder';
+      btn.disabled = false;
+    }
+  } else if (ph?.src && ph.src !== location.href) {
+    m.photo = ph.src; // déjà une URL Storage ou externe
+  }
+
+  S.saveTeam(team);
+  feedback('clients-feedback', 'Membre sauvegardé.', 'success');
+};
 window.deleteTeamMember=id=>{if(!confirm('Supprimer ?'))return;S.saveTeam(S.team().filter(m=>m.id!==id));renderTeam();};
 window.addTeamMember=()=>{S.saveTeam([...S.team(),{id:Date.now().toString(),name:'',role:'',bio:'',photo:'',certs:[],social:{}}]);renderTeam();};
 

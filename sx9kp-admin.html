@@ -93,6 +93,18 @@
     </div>
   </aside>
 
+  <!-- Bottom tab bar — mobile uniquement (≤600px) -->
+  <nav class="admin-bottom-nav" role="navigation" aria-label="Navigation admin mobile">
+    <button class="active" onclick="switchPanel('articles',this)" data-panel="articles"><span class="nav-icon">📝</span>Articles</button>
+    <button onclick="switchPanel('projects',this)" data-panel="projects"><span class="nav-icon">🎨</span>Projets</button>
+    <button onclick="switchPanel('services',this)" data-panel="services"><span class="nav-icon">⚙️</span>Services</button>
+    <button onclick="switchPanel('clients',this)" data-panel="clients"><span class="nav-icon">👥</span>Clients</button>
+    <button onclick="switchPanel('pages',this)" data-panel="pages"><span class="nav-icon">📄</span>Pages</button>
+    <button onclick="switchPanel('media',this)" data-panel="media"><span class="nav-icon">🖼️</span>Médias</button>
+    <button onclick="switchPanel('footer',this)" data-panel="footer"><span class="nav-icon">🔗</span>Footer</button>
+    <button onclick="switchPanel('settings',this)" data-panel="settings"><span class="nav-icon">⚙️</span>Réglages</button>
+  </nav>
+
   <main class="admin-main">
 
     <!-- ARTICLES -->
@@ -182,6 +194,7 @@
               </div>
             </div>
             <div class="admin-form-group"><label>Description</label><textarea id="p-description" rows="4"></textarea></div>
+            <div class="admin-form-group"><label>Lien Behance <span style="color:#555;font-weight:400;font-size:11px">— optionnel, affiché dans le modal</span></label><input type="url" id="p-behance" placeholder="https://www.behance.net/gallery/..."></div>
             <div class="admin-form-actions"><button type="submit" class="admin-btn auto">Sauvegarder</button><button type="button" id="btn-cancel-project" class="admin-btn ghost">Annuler</button></div>
           </form>
         </div>
