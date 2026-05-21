@@ -21,81 +21,29 @@ let cropDragging = false, cropStartX, cropStartY, cropStartOX, cropStartOY;
 async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
 
 /* ── STORAGE ── */
-/* ── Cache mémoire (peuplé depuis Firestore au démarrage) ── */
-const DB = {};
-
-/* ── Sauvegarde Firestore en arrière-plan ── */
-async function fbSave(key, value) {
-  try {
-    const FB = await Promise.race([
-      window._fbReady || Promise.resolve(null),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))
-    ]);
-    if (FB) { await FB.save(key, value); return; }
-  } catch(e) {
-    console.error('[Firebase] save error', key, e);
-    showFbError('Erreur de sauvegarde Firebase. Données conservées localement.');
-  }
-  // Fallback localStorage
-  try { localStorage.setItem('cs_'+key, JSON.stringify(value)); } catch {}
-}
-
-function showFbError(msg) {
-  const el = document.getElementById('fb-sync-error');
-  if (!el) return;
-  el.textContent = '⚠️ ' + (msg || 'Erreur Firebase.');
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 7000);
-}
-
-/* ── Chargement initial depuis Firestore (avec timeout 10s) ── */
-async function loadFromFirestore() {
-  const keys = ['posts','projects','services','clients','testimonials',
-                'team','footer','pageContent','messages','admins'];
-  try {
-    const FB = await Promise.race([
-      window._fbReady || Promise.resolve(null),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('firebase timeout')), 10000))
-    ]);
-    if (!FB) throw new Error('Firebase non disponible');
-    const data = await Promise.race([
-      FB.loadAll(keys),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('loadAll timeout')), 10000))
-    ]);
-    Object.assign(DB, data);
-    console.log('[Firebase] Données chargées:', Object.keys(data));
-  } catch(e) {
-    console.warn('[Firebase] Chargement échoué, fallback localStorage:', e.message);
-    keys.forEach(k => {
-      try { const v = localStorage.getItem('cs_'+k); if (v !== null) DB[k] = JSON.parse(v); }
-      catch {}
-    });
-  }
-}
-
-/* ── Objet S : lectures depuis cache, écritures Firestore async ── */
-const S = {
-  posts:        () => DB.posts        ?? window.ClassS?.getDefaultPosts()        ?? [],
-  projects:     () => DB.projects     ?? window.ClassS?.getDefaultProjects()     ?? [],
-  services:     () => DB.services     ?? window.ClassS?.getDefaultServices()     ?? [],
-  clients:      () => DB.clients      ?? window.ClassS?.getDefaultClients()      ?? [],
-  testimonials: () => DB.testimonials ?? window.ClassS?.getDefaultTestimonials() ?? [],
-  team:         () => DB.team         ?? window.ClassS?.getDefaultTeam()         ?? [],
-  footer:       () => DB.footer       ?? window.ClassS?.getDefaultFooter()       ?? {},
-  pageContent:  () => DB.pageContent  ?? window.ClassS?.getDefaultPageContent()  ?? {},
-  messages:     () => DB.messages     ?? [],
-  admins:       () => DB.admins       ?? [],
-
-  savePosts:        v => { DB.posts        = v; fbSave('posts', v); },
-  saveProjects:     v => { DB.projects     = v; fbSave('projects', v); },
-  saveServices:     v => { DB.services     = v; fbSave('services', v); },
-  saveClients:      v => { DB.clients      = v; fbSave('clients', v); },
-  saveTestimonials: v => { DB.testimonials = v; fbSave('testimonials', v); },
-  saveTeam:         v => { DB.team         = v; fbSave('team', v); },
-  saveFooter:       v => { DB.footer       = v; fbSave('footer', v); },
-  savePageContent:  v => { DB.pageContent  = v; fbSave('pageContent', v); },
-  saveMessages:     v => { DB.messages     = v; fbSave('messages', v); },
-  saveAdmins:       v => { DB.admins       = v; fbSave('admins', v); },
+const S={
+  get:(k,def=[])=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):def;}catch{return def;}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  posts:()=>S.get('cs_posts',window.ClassS?.getDefaultPosts()||[]),
+  savePosts:v=>S.set('cs_posts',v),
+  projects:()=>S.get('cs_projects',window.ClassS?.getDefaultProjects()||[]),
+  saveProjects:v=>S.set('cs_projects',v),
+  services:()=>S.get('cs_services',window.ClassS?.getDefaultServices()||[]),
+  saveServices:v=>S.set('cs_services',v),
+  clients:()=>S.get('cs_clients',window.ClassS?.getDefaultClients()||[]),
+  saveClients:v=>S.set('cs_clients',v),
+  testimonials:()=>S.get('cs_testimonials',window.ClassS?.getDefaultTestimonials()||[]),
+  saveTestimonials:v=>S.set('cs_testimonials',v),
+  team:()=>S.get('cs_team',window.ClassS?.getDefaultTeam()||[]),
+  saveTeam:v=>S.set('cs_team',v),
+  footer:()=>S.get('cs_footer',window.ClassS?.getDefaultFooter()||{}),
+  saveFooter:v=>S.set('cs_footer',v),
+  pageContent:()=>S.get('cs_page_content',window.ClassS?.getDefaultPageContent()||{}),
+  savePageContent:v=>S.set('cs_page_content',v),
+  messages:()=>S.get('cs_messages',[]),
+  saveMessages:v=>S.set('cs_messages',v),
+  admins:()=>S.get('cs_admin_users',[]),
+  saveAdmins:v=>S.set('cs_admin_users',v),
 };
 
 /* ════════════════════════════════════════
@@ -104,19 +52,10 @@ const S = {
 document.addEventListener('DOMContentLoaded', () => {
   const sess = sessionStorage.getItem('cs_auth_user');
   if (sess) {
-    try { currentUser = JSON.parse(sess); }
-    catch { showLogin(); return; }
-    // Afficher le dashboard immédiatement avec les données par défaut
-    showDashboard();
-    // Charger Firebase en arrière-plan et rafraîchir si nécessaire
-    const bar = document.getElementById('fb-loading-bar');
-    if (bar) bar.style.display = 'block';
-    loadFromFirestore().then(() => {
-      if (bar) bar.style.display = 'none';
-      // Rafraîchir les listes visibles avec les vraies données
-      if (typeof renderArticlesList === 'function') renderArticlesList();
-      if (typeof renderProjectsList === 'function') renderProjectsList();
-    }).catch(() => { if (bar) bar.style.display = 'none'; });
+    try {
+      currentUser = JSON.parse(sess);
+      showDashboard();
+    } catch { showLogin(); }
   } else {
     showLogin();
   }
@@ -242,32 +181,10 @@ function initTabs(){
 /* ════════════════════════════════════════
    IMAGE UPLOAD HELPER (FileReader → base64)
 ════════════════════════════════════════ */
-/* ── Image compression utility ──────────────────────────────
-   Resize to max 1600px longest side, JPEG 0.82 quality.
-   Returns a Promise<base64string>.
-──────────────────────────────────────────────────────────── */
-function compressImage(dataURL,maxPx=1600,quality=0.82){
-  return new Promise(resolve=>{
-    const img=new Image();
-    img.onload=()=>{
-      let w=img.naturalWidth,h=img.naturalHeight;
-      if(w<=maxPx&&h<=maxPx&&dataURL.length<600*1024){resolve(dataURL);return;}
-      const scale=Math.min(maxPx/w,maxPx/h,1);
-      w=Math.round(w*scale);h=Math.round(h*scale);
-      const c=document.createElement('canvas');c.width=w;c.height=h;
-      c.getContext('2d').drawImage(img,0,0,w,h);
-      resolve(c.toDataURL('image/jpeg',quality));
-    };
-    img.src=dataURL;
-  });
-}
-
-/* ── Safe localStorage save with quota feedback ────────── */
-
-
 function makeImgUpload(containerId, onLoaded, opts={}){
   const wrap=document.getElementById(containerId);
   if(!wrap)return;
+  const maxMB=opts.maxMB||2;
   const allowCrop=opts.crop||false;
 
   const thumb=wrap.querySelector('.img-thumb-preview');
@@ -286,13 +203,13 @@ function makeImgUpload(containerId, onLoaded, opts={}){
 
   fileInp?.addEventListener('change',()=>{
     const f=fileInp.files[0];if(!f)return;
+    if(f.size>maxMB*1024*1024){alert(`Image trop grande (max ${maxMB} Mo). Compressez avant d'importer.`);return;}
     const r=new FileReader();
-    r.onload=async e=>{
-      const compressed=await compressImage(e.target.result);
+    r.onload=e=>{
       if(allowCrop){
-        openCropModal(compressed,(croppedData)=>{setImage(croppedData);});
+        openCropModal(e.target.result,(croppedData)=>{setImage(croppedData);});
       } else {
-        setImage(compressed);
+        setImage(e.target.result);
       }
     };
     r.readAsDataURL(f);
@@ -444,6 +361,7 @@ function articleImageHandler(){
   const input=document.createElement('input');input.type='file';input.accept='image/*';input.click();
   input.onchange=()=>{
     const f=input.files[0];if(!f)return;
+    if(f.size>2*1024*1024){alert('Image trop grande (max 2 Mo).');return;}
     const r=new FileReader();
     r.onload=e=>{
       const range=quillArticle.getSelection(true);
@@ -599,33 +517,13 @@ function initProjectsPanel(){
   fileInput?.addEventListener('change',()=>{
     const files=Array.from(fileInput.files);
     if(!files.length)return;
-    const grid=document.getElementById('project-images-grid');
-    const addBtn=document.getElementById('project-img-file-input')?.closest('label');
-    // Show loading state
-    const loadingEl=document.createElement('span');
-    loadingEl.id='proj-img-loading';
-    loadingEl.style.cssText='color:#6600CC;font-size:13px;display:block;margin-top:8px';
-    loadingEl.textContent=`⏳ Chargement de ${files.length} image${files.length>1?'s':''}…`;
-    grid.parentNode.appendChild(loadingEl);
-    if(addBtn)addBtn.style.opacity='0.4';
     let loaded=0;
-    const total=files.length;
     files.forEach(f=>{
       const r=new FileReader();
-      r.onload=async e=>{
-        const compressed=await compressImage(e.target.result);
-        projectImages.push(compressed);
-        loaded++;
-        loadingEl.textContent=`⏳ ${loaded}/${total} image${total>1?'s':''} traité${total>1?'es':'e'}…`;
-        if(loaded===total){
-          loadingEl.remove();
-          if(addBtn)addBtn.style.opacity='';
-          renderProjectImagesGrid();
-        }
-      };
+      r.onload=e=>{projectImages.push(e.target.result);loaded++;if(loaded===files.length)renderProjectImagesGrid();};
       r.readAsDataURL(f);
     });
-    fileInput.value='';
+    fileInput.value=''; // reset so same files can be re-added
   });
 }
 
@@ -668,9 +566,8 @@ function saveProject(){
   };
   if(editingProjectId){const i=projects.findIndex(p=>p.id===editingProjectId);if(i>=0)projects[i]=proj;else projects.unshift(proj);}
   else projects.unshift(proj);
-  S.saveProjects(projects);
-  closeProjectForm();renderProjectsList();
-  feedback('projects-feedback',`Projet sauvegardé. (${proj.images.length} image${proj.images.length!==1?'s':''})`);
+  S.saveProjects(projects);closeProjectForm();renderProjectsList();
+  feedback('projects-feedback',`Projet sauvegardé (${proj.images.length} image${proj.images.length!==1?'s':''}).`,'success');
 }
 
 /* ════════════════════════════════════════
@@ -718,7 +615,8 @@ function renderClients(){
     const thumb=wrap2.querySelector('.img-thumb-preview');
     fileInp?.addEventListener('change',()=>{
       const f=fileInp.files[0];if(!f)return;
-      const r=new FileReader();r.onload=async e=>{const c=await compressImage(e.target.result,800,0.85);if(thumb){thumb.src=c;thumb.classList.add('loaded');}};r.readAsDataURL(f);
+      if(f.size>500*1024){alert('Logo trop grand (max 500 Ko).');return;}
+      const r=new FileReader();r.onload=e=>{if(thumb){thumb.src=e.target.result;thumb.classList.add('loaded');}};r.readAsDataURL(f);
     });
   });
 }
@@ -827,6 +725,7 @@ function initMediaPanel(){
   if(storedBrochName&&brochName){brochName.textContent=storedBrochName;brochName.classList.add('loaded');}
   brochInp?.addEventListener('change',()=>{
     const f=brochInp.files[0];if(!f)return;
+    if(f.size>5*1024*1024){alert('Fichier trop grand (max 5 Mo).');return;}
     const r=new FileReader();r.onload=e=>{localStorage.setItem('cs_brochure',e.target.result);localStorage.setItem('cs_brochure_name',f.name);if(brochName){brochName.textContent=f.name;brochName.classList.add('loaded');}feedback('media-feedback','Dépliant mis à jour.','success');};r.readAsDataURL(f);
   });
 }
