@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article — Class S</title>
+  <meta name="description" content="" id="meta-desc">
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/animations.css">
+  <link rel="canonical" href="https://wendclass.github.io/bf/article.html">
+</head>
+<body>
+<div id="cursor" aria-hidden="true"></div>
+<div id="admin-modal" class="admin-modal"><div class="admin-modal-box"><button class="admin-modal-close" id="admin-modal-close">✕</button><div class="admin-modal-logo">Class S</div><p class="admin-modal-sub">Accès restreint.</p><input type="password" id="admin-modal-input" class="admin-input" placeholder="Mot de passe" autocomplete="off"><p class="admin-modal-error" id="admin-modal-err"></p><button id="admin-modal-submit" class="admin-btn" style="width:100%;padding:13px">Accéder</button></div></div>
+<div class="drawer-overlay" aria-hidden="true"></div>
+<nav class="nav-drawer"><button class="drawer-close" aria-label="Fermer">✕</button><a href="index.html">Accueil</a><a href="works.html">Projets</a><a href="services.html">Services</a><a href="blog.html">Blog</a><a href="contact.html">Contact</a><a href="about.html">À propos</a></nav>
+<header class="navbar"><div class="container"><a href="index.html" class="navbar-logo" role="button" aria-label="Class S"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></a><ul class="navbar-links"><li><a href="index.html">Accueil</a></li><li><a href="works.html">Projets</a></li><li><a href="services.html">Services</a></li><li><a href="blog.html" class="active">Blog</a></li><li><a href="contact.html">Contact</a></li></ul><button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button></div></header>
+<button id="back-to-top" aria-label="Retour en haut">↑</button>
+
+<div id="article-hero" class="article-hero" role="img" aria-label="Couverture de l'article"></div>
+
+<main>
+  <article class="article-body">
+    <span id="article-category" class="article-category"></span>
+    <h1 id="article-title" class="article-title"></h1>
+    <p id="article-meta" class="article-meta"></p>
+    <p id="article-meta-modified" class="article-meta-modified"></p>
+    <div id="article-tags" class="article-tags"></div>
+    <hr class="article-divider">
+    <div id="article-content" class="article-content"></div>
+
+    <!-- Author -->
+    <div id="article-author" class="article-author" style="display:none">
+      <div id="author-info" class="article-author-info">
+        <p class="article-author-label">Rédigé par</p>
+        <p id="author-name" class="article-author-name"></p>
+        <p id="author-role" class="article-author-role"></p>
+      </div>
+      <img id="author-photo" class="article-author-photo" src="" alt="" style="display:none">
+    </div>
+
+    <!-- CTA éditorial -->
+    <div class="cta-editorial">
+      <p>"Vous aimez ce type de réflexion ?<br>Votre marque mérite le même niveau d'attention."</p>
+      <a href="contact.html" class="cta-arrow" data-track="Article - CTA éditorial">Discutons de votre projet <span class="arrow">→</span></a>
+    </div>
+
+    <div style="margin-top:40px">
+      <a href="blog.html" class="cta-text"><span class="arrow-right" style="transform:rotate(180deg);display:inline-block">→</span>&nbsp; Tous les articles</a>
+    </div>
+  </article>
+
+  <section class="article-related" id="related-section" aria-label="À lire aussi">
+    <h2 class="article-related-title">À lire aussi</h2>
+    <div class="article-related-grid" id="related-grid"></div>
+  </section>
+</main>
+
+<footer class="footer"><div class="container"><div class="footer-top"><div><div class="footer-logo" role="button"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></div><p class="footer-baseline" id="footer-baseline">L'identité visuelle qui s'impose.</p></div><nav><ul class="footer-links" id="footer-links-dynamic"><li><a href="index.html">Accueil</a></li><li><a href="works.html">Projets</a></li><li><a href="services.html">Services</a></li><li><a href="blog.html">Blog</a></li><li><a href="contact.html">Contact</a></li><li><a href="about.html">À propos</a></li></ul></nav><div class="footer-socials"><a href="https://www.linkedin.com/in/wendclasss" class="footer-social-link" aria-label="LinkedIn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a></div></div><hr class="footer-divider"><div class="footer-bottom"><p class="footer-copy" id="footer-copy">© 2025 Class S — Ouagadougou, Burkina Faso</p></div></div></footer>
+
+<script type="module" src="js/firebase.js"></script>
+<script src="js/analytics.js"></script>
+<script defer src="js/main.js"></script>
+<script>
+(async function() {
+  if (document.readyState === 'loading') {
+    await new Promise(r => document.addEventListener('DOMContentLoaded', r));
+  }
+  const id = new URLSearchParams(location.search).get('id');
+  let posts, team;
+  try {
+    const FB = await (window._fbReady || Promise.resolve(null));
+    if (FB) {
+      const data = await FB.loadAll(['posts','team']);
+      posts = data.posts || window.ClassS.getDefaultPosts();
+      team  = data.team  || window.ClassS.getDefaultTeam();
+    } else throw new Error('no FB');
+  } catch {
+    try { posts = JSON.parse(localStorage.getItem('cs_posts')) || window.ClassS.getDefaultPosts(); } catch { posts = window.ClassS.getDefaultPosts(); }
+    try { team  = JSON.parse(localStorage.getItem('cs_team'))  || window.ClassS.getDefaultTeam();  } catch { team  = window.ClassS.getDefaultTeam(); }
+  }
+  const post = posts.find(p => p.id === id);
+  if (!post) {
+    document.getElementById('article-title').textContent = 'Article introuvable';
+    document.getElementById('article-content').innerHTML = '<p>Cet article n'existe pas ou a été supprimé.</p>';
+    return;
+  }
+  document.title = post.title + ' — Class S';
+  const metaDesc = document.getElementById('meta-desc'); if(metaDesc) metaDesc.content = post.excerpt||'';
+  const hero = document.getElementById('article-hero');
+  if(hero){ if(post.cover){hero.style.backgroundImage=`url('${post.cover}')`;hero.style.backgroundSize='cover';hero.style.backgroundPosition='center';}else hero.style.background=post.coverGradient||'linear-gradient(135deg,#6600CC,#0A0A0A)'; }
+  const setEl=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined)el.textContent=val;};
+  setEl('article-category',post.category);
+  setEl('article-title',post.title);
+  const wc=(post.content||'').replace(/<[^>]+>/g,'').split(/\s+/).filter(Boolean).length;
+  const rt=Math.max(1,Math.ceil(wc/200));
+  setEl('article-meta',`Class S · ${post.date}${post.time?' à '+post.time:''} · ${rt} min de lecture`);
+  if(post.modifiedAt){const mod=new Date(post.modifiedAt);setEl('article-meta-modified',`Dernière modification : ${mod.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})} à ${mod.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`);}
+  const tagsEl=document.getElementById('article-tags');if(tagsEl&&post.hashtags?.length){tagsEl.innerHTML=post.hashtags.map(h=>`<span class="article-tag">#${h}</span>`).join('');}
+  const contentEl=document.getElementById('article-content');if(contentEl)contentEl.innerHTML=post.content||'';
+  if(post.authorId){const author=team.find(m=>m.id===post.authorId);if(author){const authorEl=document.getElementById('article-author');if(authorEl)authorEl.style.display='flex';setEl('author-name',author.name);setEl('author-role',author.role);if(author.photo){const img=document.getElementById('author-photo');if(img){img.src=author.photo;img.alt=author.name;img.style.display='block';}}}}
+  const others=posts.filter(p=>p.id!==id&&!p.draft).sort(()=>Math.random()-.5).slice(0,2);
+  const relGrid=document.getElementById('related-grid');
+  if(others.length&&relGrid){relGrid.innerHTML=others.map(p=>window.ClassS.renderBlogCard(p)).join('');}
+  else{const rs=document.getElementById('related-section');if(rs)rs.style.display='none';}
+})();
+</script>
+</body></html>
