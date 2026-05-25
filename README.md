@@ -16,6 +16,15 @@
 - **Analytics** : statistiques générales + par page + par visiteur + sources + appareils
 - **Médias** : aperçu de chaque élément importé (favicon, logo, brochure)
 
+---
+
+## Accès Administration
+
+**URL :** `sx9kp-admin.html`
+**Accès secret :** 7 clics rapides sur le logo "Class S" → fenêtre de connexion
+**Mot de passe Headmaster :** `ThetwoClassS@Adm2005!`
+
+---
 
 ## Déploiement GitHub Pages
 

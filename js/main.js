@@ -22,8 +22,8 @@ window.ClassS={getDefaultPosts,getDefaultProjects,getDefaultServices,getDefaultC
 (function(){const f=localStorage.getItem('cs_favicon');if(!f)return;let l=document.getElementById('favicon');if(!l){l=document.createElement('link');l.id='favicon';l.rel='icon';document.head.appendChild(l);}l.href=f;})();
 
 /* ══ LOGO — applies to navbar + footer, hides text when image loaded ══ */
-function applyLogo(){
-  const logo=null; // logo désormais géré via Firestore dans initDynamicContent
+function applyLogo(overrideLogo){
+  const logo=overrideLogo||localStorage.getItem('cs_logo')||null;
   document.querySelectorAll('.navbar-logo, .footer-logo').forEach(el=>{
     const img=el.querySelector('.logo-img');
     const txt=el.querySelector('.logo-text');
@@ -43,7 +43,7 @@ applyLogo();
   if(!overlay)return;
   if(sessionStorage.getItem('cs_intro_done')){overlay.style.display='none';return;}
   // Show logo image if available, else text
-  const logo=null; // logo désormais géré via Firestore dans initDynamicContent
+  const logo=localStorage.getItem('cs_logo')||null;
   const logoEl=overlay.querySelector('.intro-logo');
   if(logo&&logoEl){
     const imgEl=logoEl.querySelector('.intro-logo-img');
@@ -238,6 +238,8 @@ document.querySelectorAll('.hero-title .word').forEach((w,i)=>{w.style.animation
     set('hero-title-dynamic', pc.hero_title); set('hero-sub-dynamic', pc.hero_sub);
     set('manifeste-quote-dynamic', pc.manifeste_quote); set('manifeste-body-dynamic', pc.manifeste_body);
     set('cta-title-dynamic', pc.cta_title); set('cta-sub-dynamic', pc.cta_sub);
+    // Appliquer le logo depuis Firestore si défini
+    if (pc.logo) { localStorage.setItem('cs_logo', pc.logo); applyLogo(pc.logo); }
   }
 })();
 

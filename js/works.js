@@ -48,7 +48,6 @@
   }
 
   function render(filterCat) {
-    load();
     filtered = filterCat === 'Tout' ? [...projects] : projects.filter(p => p.category === filterCat);
     if (!filtered.length) {
       grid.innerHTML = '<p style="color:#888;grid-column:1/-1;text-align:center;padding:60px 0;">Aucun projet dans cette catégorie.</p>';
@@ -163,5 +162,6 @@
   modal?.querySelector('#modal-next')?.addEventListener('click', () => { if (currentIndex < filtered.length - 1) openModal(currentIndex + 1); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+  await load();
   render('Tout');
 })();

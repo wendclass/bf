@@ -194,8 +194,8 @@ window.logout=function(){sessionStorage.removeItem('cs_auth_user');window.locati
    DASHBOARD
 ════════════════════════════════════════ */
 function initDashboard(){
-  // Apply logo
-  const logo=localStorage.getItem('cs_logo');
+  // Apply logo — DB cache (Firestore) en priorité, localStorage en fallback
+  const logo=DB.pageContent?.logo||localStorage.getItem('cs_logo');
   if(logo){
     const sImg=document.querySelector('.sidebar-logo-img');
     const sTxt=document.querySelector('.sidebar-logo-text');
@@ -814,11 +814,18 @@ function initMediaPanel(){
   if(storedLogo&&logoPrev){logoPrev.src=storedLogo;logoPrev.classList.add('loaded');}
   logoInp?.addEventListener('change',()=>{
     const f=logoInp.files[0];if(!f)return;
-    const r=new FileReader();r.onload=e=>{localStorage.setItem('cs_logo',e.target.result);if(logoPrev){logoPrev.src=e.target.result;logoPrev.classList.add('loaded');}feedback('media-feedback','Logo mis à jour. Rechargez les pages du site pour voir le changement.','success');};r.readAsDataURL(f);
+    const r=new FileReader();r.onload=async e=>{
+      const compressed=await compressImage(e.target.result,800,0.85);
+      localStorage.setItem('cs_logo',compressed);
+      // Sync logo to Firestore via pageContent
+      const pc=S.pageContent();pc.logo=compressed;S.savePageContent(pc);
+      if(logoPrev){logoPrev.src=compressed;logoPrev.classList.add('loaded');}
+      feedback('media-feedback','Logo mis à jour et synchronisé.','success');
+    };r.readAsDataURL(f);
   });
 
   // Remove logo
-  document.getElementById('btn-remove-logo')?.addEventListener('click',()=>{localStorage.removeItem('cs_logo');if(logoPrev){logoPrev.src='';logoPrev.classList.remove('loaded');}feedback('media-feedback','Logo supprimé. Le texte "Class S" sera affiché.','success');});
+  document.getElementById('btn-remove-logo')?.addEventListener('click',()=>{localStorage.removeItem('cs_logo');const pc=S.pageContent();delete pc.logo;S.savePageContent(pc);if(logoPrev){logoPrev.src='';logoPrev.classList.remove('loaded');}feedback('media-feedback','Logo supprimé et synchronisé.','success');});
 
   // Brochure
   const brochInp=document.getElementById('brochure-upload');
@@ -940,9 +947,12 @@ function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=va
 function initSettingsPanel(){
   document.getElementById('btn-export')?.addEventListener('click',exportData);
   document.getElementById('import-file')?.addEventListener('change',e=>importData(e.target.files[0]));
-  const cfg=S.get('cs_emailjs_config',null);
-  if(cfg){const p=document.getElementById('ej-public-key');const s=document.getElementById('ej-service-id');const t=document.getElementById('ej-template-id');if(p)p.value=cfg.publicKey||'';if(s)s.value=cfg.serviceId||'';if(t)t.value=cfg.templateId||'';}
-  document.getElementById('btn-save-emailjs')?.addEventListener('click',()=>{S.set('cs_emailjs_config',{publicKey:document.getElementById('ej-public-key')?.value,serviceId:document.getElementById('ej-service-id')?.value,templateId:document.getElementById('ej-template-id')?.value});feedback('settings-feedback','Configuration EmailJS sauvegardée.','success');});
+  // EmailJS config: localStorage direct (config locale par appareil, pas besoin de Firestore)
+  try{
+    const cfg=JSON.parse(localStorage.getItem('cs_emailjs_config'));
+    if(cfg){const p=document.getElementById('ej-public-key');const s=document.getElementById('ej-service-id');const t=document.getElementById('ej-template-id');if(p)p.value=cfg.publicKey||'';if(s)s.value=cfg.serviceId||'';if(t)t.value=cfg.templateId||'';}
+  }catch{}
+  document.getElementById('btn-save-emailjs')?.addEventListener('click',()=>{localStorage.setItem('cs_emailjs_config',JSON.stringify({publicKey:document.getElementById('ej-public-key')?.value,serviceId:document.getElementById('ej-service-id')?.value,templateId:document.getElementById('ej-template-id')?.value}));feedback('settings-feedback','Configuration EmailJS sauvegardée.','success');});
 }
 
 function exportData(){

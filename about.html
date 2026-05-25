@@ -243,15 +243,16 @@
 
 <script type="module" src="js/firebase.js"></script>
 <script src="js/analytics.js"></script>
-<script src="js/analytics.js"></script>
 <script defer src="js/main.js"></script>
 <script defer>
 document.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('team-grid');
   if (!grid) return;
   let team;
-  try { team = JSON.parse(localStorage.getItem('cs_team')) || window.ClassS.getDefaultTeam(); }
-  catch { team = window.ClassS.getDefaultTeam(); }
+  try {
+    const FB = await (window._fbReady||Promise.resolve(null));
+    team = FB ? (await FB.load('team')) || window.ClassS.getDefaultTeam() : window.ClassS.getDefaultTeam();
+  } catch { try{team=JSON.parse(localStorage.getItem('cs_team'))||window.ClassS.getDefaultTeam();}catch{team=window.ClassS.getDefaultTeam();} }
   grid.innerHTML = team.map(m => {
     const photoEl = m.photo
       ? `<img class="team-photo" src="${m.photo}" alt="${m.name}" loading="lazy">`
