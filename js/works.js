@@ -26,10 +26,10 @@ function resolveImgUrl(url) {
       const FB = await (window._fbReady || Promise.resolve(null));
       if (FB) {
         const data = await FB.load('projects');
-        projects = data || window.ClassS.getDefaultProjects();
+        projects = data || [];
       } else { throw new Error('no FB'); }
     } catch {
-      projects = window.ClassS.getDefaultProjects();
+      projects = [];
     }
   }
 

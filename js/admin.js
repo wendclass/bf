@@ -75,12 +75,12 @@ async function loadFromFirestore() {
 
 /* ── Objet S : lectures depuis cache, écritures Firestore async ── */
 const S = {
-  posts:        () => DB.posts        ?? window.ClassS?.getDefaultPosts()        ?? [],
-  projects:     () => DB.projects     ?? window.ClassS?.getDefaultProjects()     ?? [],
-  services:     () => DB.services     ?? window.ClassS?.getDefaultServices()     ?? [],
-  clients:      () => DB.clients      ?? window.ClassS?.getDefaultClients()      ?? [],
-  testimonials: () => DB.testimonials ?? window.ClassS?.getDefaultTestimonials() ?? [],
-  team:         () => DB.team         ?? window.ClassS?.getDefaultTeam()         ?? [],
+  posts:        () => DB.posts        ?? [],
+  projects:     () => DB.projects     ?? [],
+  services:     () => DB.services     ?? [],
+  clients:      () => DB.clients      ?? [],
+  testimonials: () => DB.testimonials ?? [],
+  team:         () => DB.team         ?? [],
   footer:       () => DB.footer       ?? window.ClassS?.getDefaultFooter()       ?? {},
   pageContent:  () => DB.pageContent  ?? window.ClassS?.getDefaultPageContent()  ?? {},
   messages:     () => DB.messages     ?? [],

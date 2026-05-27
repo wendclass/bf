@@ -8,14 +8,14 @@
     const FB = await (window._fbReady || Promise.resolve(null));
     if (FB) {
       const data = await FB.load('posts');
-      posts = data || window.ClassS.getDefaultPosts();
+      posts = data || [];
     } else { throw new Error('no FB'); }
   } catch {
-    posts = window.ClassS.getDefaultPosts();
+    posts = [];
   }
   grid.innerHTML = posts.length
     ? posts.map(p => window.ClassS.renderBlogCard(p)).join('')
-    : '<p style="color:#888;grid-column:1/-1;text-align:center;padding:60px 0;">Aucun article disponible.</p>';
+    : '<p style="color:#444;font-size:15px;text-align:center;padding:80px 0;grid-column:1/-1">Les articles arrivent bientôt.</p>';
   requestAnimationFrame(() => {
     grid.querySelectorAll('.blog-card').forEach((c,i) => {
       c.style.opacity='0';c.style.transform='translateY(18px)';
