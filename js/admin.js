@@ -566,26 +566,48 @@ function updateSEO(){
 /* ════════════════════════════════════════
    PROJECTS PANEL
 ════════════════════════════════════════ */
-/* ── Multi-image manager for projects ── */
-let projectImages=[];  // array of base64 strings
+/* ── Gestionnaire d'images projet — système URL (fichiers dans assets/img/projects/) ── */
+let projectImages = []; // tableau d'URLs (chemins relatifs ou URLs externes)
 
-function renderProjectImagesGrid(){
-  const grid=document.getElementById('project-images-grid');
-  if(!grid)return;
-  if(!projectImages.length){grid.innerHTML='<span style="color:#555;font-size:13px">Aucune image ajoutée.</span>';return;}
-  grid.innerHTML=projectImages.map((src,idx)=>`
+function renderProjectImagesGrid() {
+  const grid = document.getElementById('project-images-grid');
+  const list = document.getElementById('project-images-list');
+  if (!grid || !list) return;
+
+  // Liste des URLs avec bouton supprimer + réordonner
+  if (!projectImages.length) {
+    list.innerHTML = '<span style="color:#444;font-size:13px">Aucune image ajoutée.</span>';
+    grid.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = projectImages.map((url, idx) => `
+    <div style="display:flex;align-items:center;gap:8px;background:#111;padding:6px 10px;border-radius:3px;border:1px solid #1e1e1e">
+      <img src="${url}" onerror="this.style.display='none'"
+           style="width:48px;height:32px;object-fit:cover;border-radius:2px;flex-shrink:0;border:1px solid #2a2a2a">
+      <span style="flex:1;font-size:12px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${url}">${url}</span>
+      ${idx === 0 ? '<span style="font-size:10px;color:#6600CC;flex-shrink:0">Principale</span>' : ''}
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${idx > 0 ? `<button type="button" onclick="moveProjectImage(${idx},-1)" style="background:#1a1a1a;border:1px solid #333;color:#aaa;width:22px;height:22px;border-radius:3px;cursor:pointer;font-size:11px">↑</button>` : ''}
+        ${idx < projectImages.length-1 ? `<button type="button" onclick="moveProjectImage(${idx},1)" style="background:#1a1a1a;border:1px solid #333;color:#aaa;width:22px;height:22px;border-radius:3px;cursor:pointer;font-size:11px">↓</button>` : ''}
+        <button type="button" onclick="removeProjectImage(${idx})" style="background:#1a1a1a;border:1px solid #333;color:#c0392b;width:22px;height:22px;border-radius:3px;cursor:pointer;font-size:11px">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Grille de prévisualisations
+  grid.innerHTML = projectImages.map((url, idx) => `
     <div style="position:relative;flex-shrink:0">
-      <img src="${src}" style="width:130px;height:85px;object-fit:cover;border:1px solid #2a2a2a;border-radius:3px;display:block">
-      ${idx===0?'<span style="position:absolute;top:4px;left:4px;background:#6600CC;color:#fff;font-size:10px;padding:2px 6px;border-radius:2px">Principale</span>':''}
-      <button type="button" onclick="removeProjectImage(${idx})" style="position:absolute;top:4px;right:4px;background:#0a0a0a;border:1px solid #444;color:#ccc;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>
-      ${idx>0?`<button type="button" onclick="moveProjectImage(${idx},-1)" title="Déplacer à gauche" style="position:absolute;bottom:4px;left:4px;background:#0a0a0a;border:1px solid #444;color:#ccc;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">←</button>`:''}
-      ${idx<projectImages.length-1?`<button type="button" onclick="moveProjectImage(${idx},1)" title="Déplacer à droite" style="position:absolute;bottom:4px;right:4px;background:#0a0a0a;border:1px solid #444;color:#ccc;width:20px;height:20px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">→</button>`:''}
+      <img src="${url}" onerror="this.style.background='#1a1a1a';this.style.display='flex'"
+           style="width:130px;height:85px;object-fit:cover;border:1px solid #2a2a2a;border-radius:3px;display:block">
+      ${idx === 0 ? '<span style="position:absolute;top:4px;left:4px;background:#6600CC;color:#fff;font-size:10px;padding:2px 6px;border-radius:2px">Principale</span>' : ''}
     </div>`).join('');
 }
-window.removeProjectImage=idx=>{projectImages.splice(idx,1);renderProjectImagesGrid();};
-window.moveProjectImage=(idx,dir)=>{
-  const to=idx+dir;if(to<0||to>=projectImages.length)return;
-  [projectImages[idx],projectImages[to]]=[projectImages[to],projectImages[idx]];
+
+window.removeProjectImage = idx => { projectImages.splice(idx, 1); renderProjectImagesGrid(); };
+window.moveProjectImage = (idx, dir) => {
+  const to = idx + dir;
+  if (to < 0 || to >= projectImages.length) return;
+  [projectImages[idx], projectImages[to]] = [projectImages[to], projectImages[idx]];
   renderProjectImagesGrid();
 };
 
@@ -595,37 +617,41 @@ function initProjectsPanel(){
   document.getElementById('project-form')?.addEventListener('submit',e=>{e.preventDefault();saveProject();});
   document.getElementById('btn-cancel-project')?.addEventListener('click',closeProjectForm);
 
-  const fileInput=document.getElementById('project-img-file-input');
-  fileInput?.addEventListener('change',()=>{
-    const files=Array.from(fileInput.files);
-    if(!files.length)return;
-    const grid=document.getElementById('project-images-grid');
-    const addBtn=document.getElementById('project-img-file-input')?.closest('label');
-    // Show loading state
-    const loadingEl=document.createElement('span');
-    loadingEl.id='proj-img-loading';
-    loadingEl.style.cssText='color:#6600CC;font-size:13px;display:block;margin-top:8px';
-    loadingEl.textContent=`⏳ Chargement de ${files.length} image${files.length>1?'s':''}…`;
-    grid.parentNode.appendChild(loadingEl);
-    if(addBtn)addBtn.style.opacity='0.4';
-    let loaded=0;
-    const total=files.length;
-    files.forEach(f=>{
-      const r=new FileReader();
-      r.onload=async e=>{
-        const compressed=await compressImage(e.target.result);
-        projectImages.push(compressed);
-        loaded++;
-        loadingEl.textContent=`⏳ ${loaded}/${total} image${total>1?'s':''} traité${total>1?'es':'e'}…`;
-        if(loaded===total){
-          loadingEl.remove();
-          if(addBtn)addBtn.style.opacity='';
-          renderProjectImagesGrid();
-        }
+  // ── Ajouter une URL manuellement
+  const urlInput = document.getElementById('project-img-url-input');
+  const btnAddUrl = document.getElementById('btn-add-img-url');
+  btnAddUrl?.addEventListener('click', () => {
+    const url = urlInput?.value.trim();
+    if (!url) return;
+    projectImages.push(url);
+    renderProjectImagesGrid();
+    if (urlInput) urlInput.value = '';
+  });
+  urlInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); btnAddUrl?.click(); }
+  });
+
+  // ── Prévisualisation locale uniquement (non sauvegardée — suggère le chemin)
+  const previewInput = document.getElementById('project-img-preview-input');
+  previewInput?.addEventListener('change', () => {
+    const files = Array.from(previewInput.files);
+    if (!files.length) return;
+    const grid = document.getElementById('project-images-grid');
+    // Afficher le nom de fichier suggéré dans l'input URL
+    if (files.length === 1 && urlInput) {
+      urlInput.value = 'assets/img/projects/' + files[0].name;
+    }
+    files.forEach(f => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const div = document.createElement('div');
+        div.style.cssText = 'position:relative;flex-shrink:0';
+        div.innerHTML = '<img src="' + e.target.result + '" style="width:130px;height:85px;object-fit:cover;border:2px dashed #6600CC55;border-radius:3px;display:block"><div style="position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;border-radius:3px"><span style="color:#fff;font-size:9px;text-align:center;padding:4px">Aperçu local<br>Colle le chemin ↑</span></div>';
+        grid.appendChild(div);
       };
-      r.readAsDataURL(f);
+      reader.readAsDataURL(f);
     });
-    fileInput.value='';
+    previewInput.value = '';
   });
 }
 

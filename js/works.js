@@ -1,6 +1,15 @@
 /* ============ FICHIER : js/works.js — Class S v2 ============ */
 'use strict';
 
+/* Résout une URL d'image projet — chemin relatif ou URL externe */
+function resolveImgUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  // Chemin relatif → ajouter le baseURL du site
+  const base = window.location.href.replace(/\/[^/]*$/, '/');
+  return base + url;
+}
+
 (async function initWorks() {
   const grid = document.getElementById('works-page-grid');
   const pills = document.querySelectorAll('.filter-pill');
@@ -25,7 +34,7 @@
   }
 
   function renderCard(p, idx) {
-    const mainImg = p.images?.[0] || p.image || '';
+    const mainImg = resolveImgUrl(p.images?.[0] || p.image || '');
     const hasMultiple = (p.images?.length || 0) > 1;
     const bg = mainImg
       ? `background-image:url('${mainImg}');background-size:cover;background-position:center;`
@@ -82,7 +91,7 @@
     if (!p) return;
 
     // Build images list (new array or legacy single)
-    const imgs = p.images?.length ? p.images : (p.image ? [p.image] : []);
+    const imgs = (p.images?.length ? p.images : (p.image ? [p.image] : [])).map(resolveImgUrl);
     modalSlideIndex = 0;
     renderModalSlide(p, imgs, 0);
 
