@@ -171,34 +171,29 @@
               <div class="admin-form-group"><label>Mois</label><input type="text" id="p-month" placeholder="ex: Mars"></div>
               <div class="admin-form-group"><label>Année</label><input type="number" id="p-year" min="2020" max="2099"></div>
               <div class="admin-form-group full">
-                <label>Images du projet</label>
-                <p style="font-size:12px;color:#555;margin:-6px 0 12px;line-height:1.6">
-                  Dépose tes fichiers dans <code style="background:#1a1a1a;padding:2px 6px;border-radius:3px;color:#9966dd">assets/img/projects/</code> sur GitHub,
-                  puis colle ici le chemin ou une URL externe.
+                <label>Miniature du projet</label>
+                <p style="font-size:12px;color:#555;margin:-6px 0 10px;line-height:1.6">
+                  Dépose l'image dans
+                  <code style="background:#1a1a1a;padding:2px 6px;border-radius:3px;color:#9966dd">assets/img/projects/</code>
+                  sur GitHub, puis colle le chemin ci-dessous. Ou utilise une URL externe.
                 </p>
-
-                <!-- Liste des URLs des images -->
-                <div id="project-images-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-
-                <!-- Ajouter une URL -->
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <input type="text" id="project-img-url-input"
-                    placeholder="assets/img/projects/mon-projet.jpg  ou  https://..."
+                  <input type="text" id="p-thumbnail"
+                    placeholder="assets/img/projects/nom.jpg  ou  https://..."
                     style="flex:1;min-width:220px;background:#111;border:1px solid #2a2a2a;color:#ccc;padding:8px 12px;border-radius:3px;font-size:13px">
-                  <button type="button" id="btn-add-img-url" class="admin-btn sm">+ Ajouter</button>
-                </div>
-
-                <!-- Upload local → prévisualisation + chemin suggéré -->
-                <div style="margin-top:10px">
-                  <label class="btn-upload-file" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;opacity:.7">
-                    📁 Prévisualiser depuis l'appareil
-                    <input type="file" accept="image/*" multiple id="project-img-preview-input" style="display:none">
+                  <label class="admin-btn sm" style="cursor:pointer;white-space:nowrap">
+                    📁 Aperçu local
+                    <input type="file" accept="image/*" id="project-img-preview-input" style="display:none">
                   </label>
-                  <span style="font-size:11px;color:#444;margin-left:8px">(aperçu local uniquement — image non sauvegardée)</span>
                 </div>
+                <img id="project-thumb-preview" src="" alt="Aperçu"
+                     style="display:none;margin-top:10px;width:200px;height:130px;object-fit:cover;border-radius:3px;border:1px solid #2a2a2a">
+              </div>
 
-                <!-- Grille de prévisualisations -->
-                <div id="project-images-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;min-height:0"></div>
+              <div class="admin-form-group full">
+                <label>Lien Behance</label>
+                <input type="url" id="p-behance" class="admin-input"
+                  placeholder="https://www.behance.net/gallery/XXXXXXX/Nom-du-Projet">
               </div>
             </div>
             <div class="admin-form-group"><label>Description</label><textarea id="p-description" rows="4"></textarea></div>
@@ -444,7 +439,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
-<script type="module" src="js/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-init.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 <script src="js/main.js"></script>
 <script src="js/analytics.js"></script>
