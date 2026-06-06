@@ -19,14 +19,14 @@ function renderBlogCard(post){
 window.ClassS={getDefaultPosts,getDefaultProjects,getDefaultServices,getDefaultClients,getDefaultTestimonials,getDefaultTeam,getDefaultFooter,getDefaultPageContent,renderBlogCard};
 
 /* ══ FAVICON ══ */
-(function(){const f=localStorage.getItem('cs_favicon');if(!f)return;let l=document.getElementById('favicon');if(!l){l=document.createElement('link');l.id='favicon';l.rel='icon';document.head.appendChild(l);}l.href=f;})();
+// Favicon : statique dans assets/img/favicon.svg
 
 /* ══ LOGO — applies to navbar + footer, hides text when image loaded ══ */
 function applyLogo(overrideLogo){
   // Logo statique dans assets/img/logo.svg — pas de chargement dynamique nécessaire
   return;
   // Legacy code ci-dessous désactivé
-  const logo=overrideLogo||localStorage.getItem('cs_logo')||null;
+  const logo=overrideLogo||null;
   document.querySelectorAll('.navbar-logo, .footer-logo').forEach(el=>{
     const img=el.querySelector('.logo-img');
     const txt=el.querySelector('.logo-text');
@@ -46,7 +46,7 @@ applyLogo();
   if(!overlay)return;
   if(sessionStorage.getItem('cs_intro_done')){overlay.style.display='none';return;}
   // Show logo image if available, else text
-  const logo=localStorage.getItem('cs_logo')||null;
+  const logo=null;
   const logoEl=overlay.querySelector('.intro-logo');
   if(logo&&logoEl){
     const imgEl=logoEl.querySelector('.intro-logo-img');

@@ -9,6 +9,8 @@
   <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/admin.css">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/favicon.svg">
 </head>
 <body>
 <!-- Firebase slim loading bar (non-bloquant) -->
@@ -23,7 +25,7 @@
 <!-- ══ LOGIN (shown by default) ══ -->
 <div id="admin-login" class="admin-login" style="display:none">
   <div class="admin-login-logo">
-    <img id="admin-logo-img" src="" alt="" onerror="this.style.display='none'">
+    <img id="admin-logo-img" src="assets/img/logo.svg" alt="Class S" style="height:36px;width:auto">
     Class S
   </div>
   <div class="admin-login-box">
@@ -64,23 +66,32 @@
 
 <!-- ══ DASHBOARD (hidden by default) ══ -->
 <div id="admin-dashboard" style="display:none">
+  <!-- Hamburger mobile -->
+  <button id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu"
+    style="display:none;position:fixed;top:12px;left:12px;z-index:200;background:#6600CC;border:none;border-radius:6px;width:40px;height:40px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px">
+    <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+    <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+    <span style="display:block;width:18px;height:2px;background:#fff;border-radius:2px"></span>
+  </button>
+  <!-- Overlay mobile -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150"></div>
 
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <button id="sidebar-close" onclick="toggleSidebar()" aria-label="Fermer le menu"
+      style="display:none;position:absolute;top:12px;right:12px;background:none;border:none;color:#555;font-size:20px;cursor:pointer;z-index:10">✕</button>
     <div class="sidebar-logo">
-      <img class="sidebar-logo-img" src="" alt="">
-      <span class="sidebar-logo-text">Class S</span>
+      <img class="sidebar-logo-img loaded" src="assets/img/logo.svg" alt="Class S"
+           style="height:28px;width:auto;max-width:120px">
     </div>
     <ul class="sidebar-nav" role="list">
       <li><button data-panel="articles" class="active"><span class="nav-icon">📝</span><span>Articles</span></button></li>
       <li><button data-panel="projects"><span class="nav-icon">🖼️</span><span>Projets</span></button></li>
-      <li><button data-panel="services"><span class="nav-icon">⚡</span><span>Services</span></button></li>
       <li><button data-panel="pages"><span class="nav-icon">📄</span><span>Pages</span></button></li>
       <li><button data-panel="clients"><span class="nav-icon">⭐</span><span>Clients & Avis</span></button></li>
       <li><button data-panel="messages"><span class="nav-icon">✉️</span><span>Messages <span id="messages-count"></span></span></button></li>
-      <li><button data-panel="media"><span class="nav-icon">🗂️</span><span>Médias</span></button></li>
       <li><button data-panel="footer"><span class="nav-icon">🦶</span><span>Footer</span></button></li>
       <li><button data-panel="analytics"><span class="nav-icon">📊</span><span>Analytique</span></button></li>
-      <li><button data-panel="users"><span class="nav-icon">👥</span><span>Utilisateurs</span></button></li>
       <li><button data-panel="settings"><span class="nav-icon">⚙️</span><span>Paramètres</span></button></li>
     </ul>
     <div class="sidebar-bottom">
@@ -203,14 +214,6 @@
       </div>
     </section>
 
-    <!-- SERVICES -->
-    <section id="panel-services" class="admin-panel">
-      <div class="panel-header"><h2 class="panel-title">Services</h2><button class="admin-btn auto" onclick="addService()">+ Ajouter</button></div>
-      <div id="services-feedback" class="feedback-msg"></div>
-      <p style="font-size:13px;color:#555;margin-bottom:20px">Ces services apparaissent sur la page d'accueil et la page Services.</p>
-      <div id="services-editor"></div>
-    </section>
-
     <!-- PAGES -->
     <section id="panel-pages" class="admin-panel">
       <div class="panel-header"><h2 class="panel-title">Contenu des pages</h2><button id="btn-save-pages" class="admin-btn auto">Sauvegarder tout</button></div>
@@ -252,39 +255,7 @@
     </section>
 
     <!-- MÉDIAS -->
-    <section id="panel-media" class="admin-panel">
-      <div class="panel-header"><h2 class="panel-title">Médias</h2></div>
-      <div id="media-feedback" class="feedback-msg"></div>
-
-      <div class="media-preview-card">
-        <p class="media-preview-title">Favicon</p>
-        <p class="media-preview-desc">Icône dans l'onglet navigateur. PNG 32×32 ou ICO recommandé. Max 200 Ko.</p>
-        <span class="media-current-label">Aperçu actuel :</span>
-        <img id="favicon-preview" class="media-favicon-preview" src="" alt="Favicon actuel" onerror="this.classList.remove('loaded')">
-        <div><input type="file" id="favicon-upload" accept="image/*" style="display:none"><label for="favicon-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer favicon</label></div>
-      </div>
-
-      <div class="media-preview-card">
-        <p class="media-preview-title">Logo</p>
-        <p class="media-preview-desc">Logo affiché dans la navbar, le footer et l'admin. SVG ou PNG transparent recommandé. Max 500 Ko.<br><strong style="color:#f59e0b">⚠️</strong> Après upload, rechargez les pages du site pour voir le changement.</p>
-        <span class="media-current-label">Aperçu actuel :</span>
-        <img id="logo-preview" class="media-img-preview" src="" alt="Logo actuel" onerror="this.classList.remove('loaded')">
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <div><input type="file" id="logo-upload" accept="image/*" style="display:none"><label for="logo-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer logo</label></div>
-          <button id="btn-remove-logo" class="admin-btn danger sm" style="width:auto">✕ Supprimer le logo</button>
-        </div>
-      </div>
-
-      <div class="media-preview-card">
-        <p class="media-preview-title">Dépliant de services (PDF)</p>
-        <p class="media-preview-desc">Téléchargeable depuis la page Services. Max 5 Mo.</p>
-        <span class="media-current-label">Fichier actuel :</span>
-        <p id="brochure-name" class="media-text-preview">Aucun fichier importé.</p>
-        <div><input type="file" id="brochure-upload" accept=".pdf,application/pdf" style="display:none"><label for="brochure-upload" class="btn-upload-file" style="display:inline-flex;cursor:pointer">📁 Importer PDF</label></div>
-      </div>
-    </section>
-
-    <!-- FOOTER -->
+        <!-- FOOTER -->
     <section id="panel-footer" class="admin-panel">
       <div class="panel-header"><h2 class="panel-title">Footer</h2><button id="btn-save-footer" class="admin-btn auto">Sauvegarder</button></div>
       <div id="footer-feedback" class="feedback-msg"></div>
@@ -343,47 +314,7 @@
     </section>
 
     <!-- UTILISATEURS -->
-    <section id="panel-users" class="admin-panel">
-      <div class="panel-header"><h2 class="panel-title">Utilisateurs</h2><button id="btn-new-user" class="admin-btn auto">+ Nouvel utilisateur</button></div>
-      <div id="users-feedback" class="feedback-msg"></div>
-      <div style="background:rgba(102,0,204,.06);border:1px solid rgba(102,0,204,.2);padding:16px;margin-bottom:20px;font-size:13px;color:#aaa;line-height:1.7">
-        <strong style="color:var(--ap)">Headmaster :</strong> compte maître, accès total, non modifiable depuis l'interface.<br>
-        Créez des sous-administrateurs avec des permissions et durées d'accès spécifiques.
-      </div>
-      <div id="users-list"></div>
-      <div id="user-form-wrap" style="display:none">
-        <div class="admin-form"><h3 class="admin-form-title">Créer / modifier un utilisateur</h3>
-          <form id="user-form" novalidate>
-            <div class="admin-form-grid">
-              <div class="admin-form-group"><label>Identifiant *</label><input type="text" id="u-username" placeholder="ex: graphiste1" required autocomplete="off"></div>
-              <div class="admin-form-group"><label>Mot de passe *</label><input type="password" id="u-password" placeholder="Laisser vide = inchangé" autocomplete="new-password"></div>
-              <div class="admin-form-group"><label>Date d'expiration (optionnel)</label><input type="date" id="u-expiry"></div>
-              <div class="admin-form-group" style="align-items:flex-start">
-                <label>Statut</label>
-                <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--at);cursor:pointer;margin-top:4px"><input type="checkbox" id="u-active" checked style="accent-color:var(--ap)"> Compte actif</label>
-              </div>
-            </div>
-            <div class="admin-form-group"><label>Permissions d'accès</label>
-              <div class="perms-grid">
-                <label class="perm-check"><input type="checkbox" id="perm-articles"> Articles</label>
-                <label class="perm-check"><input type="checkbox" id="perm-projects"> Projets</label>
-                <label class="perm-check"><input type="checkbox" id="perm-services"> Services</label>
-                <label class="perm-check"><input type="checkbox" id="perm-pages"> Pages</label>
-                <label class="perm-check"><input type="checkbox" id="perm-clients"> Clients & Avis</label>
-                <label class="perm-check"><input type="checkbox" id="perm-messages"> Messages</label>
-                <label class="perm-check"><input type="checkbox" id="perm-media"> Médias</label>
-                <label class="perm-check"><input type="checkbox" id="perm-footer"> Footer</label>
-                <label class="perm-check"><input type="checkbox" id="perm-analytics"> Analytique</label>
-                <label class="perm-check"><input type="checkbox" id="perm-settings"> Paramètres</label>
-              </div>
-            </div>
-            <div class="admin-form-actions"><button type="submit" class="admin-btn auto">Sauvegarder</button><button type="button" id="btn-cancel-user" class="admin-btn ghost">Annuler</button></div>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- PARAMÈTRES -->
+        <!-- PARAMÈTRES -->
     <section id="panel-settings" class="admin-panel">
       <div class="panel-header"><h2 class="panel-title">Paramètres</h2></div>
       <div id="settings-feedback" class="feedback-msg"></div>

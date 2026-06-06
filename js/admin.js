@@ -1,6 +1,16 @@
 /* ============ js/admin.js — Class S v3 ============ */
 'use strict';
 
+/* ── Sidebar mobile toggle ── */
+function toggleSidebar(){
+  const sidebar=document.getElementById('admin-sidebar');
+  const overlay=document.getElementById('sidebar-overlay');
+  if(!sidebar)return;
+  const isOpen=sidebar.classList.contains('open');
+  sidebar.classList.toggle('open',!isOpen);
+  if(overlay) overlay.style.display=isOpen?'none':'block';
+}
+
 const HEADMASTER_HASH = '97c71b7f372d1c03bd0a375051a5306ee5a54cc773bb05af7aa0cb31d3f60492';
 const ALL_PERMS = ['articles','projects','services','pages','clients','messages','media','footer','analytics','users','settings'];
 
@@ -35,9 +45,7 @@ async function fbSave(key, value) {
     throw new Error('window.FB non disponible');
   } catch(e) {
     console.error('[Firebase] ❌ Erreur save:', key, e);
-    showFbError('Erreur de sauvegarde Firebase.');
-    // Fallback localStorage
-    try { localStorage.setItem('cs_'+key, JSON.stringify(value)); } catch {}
+    showFbError('Erreur de sauvegarde Firebase. Vérifiez votre connexion internet.');
   }
 }
 
@@ -59,11 +67,8 @@ async function loadFromFirestore() {
     Object.assign(DB, data);
     console.log('[Firebase] ✅ Données chargées:', Object.keys(data));
   } catch(e) {
-    console.warn('[Firebase] ⚠️ Chargement échoué, fallback localStorage:', e.message);
-    keys.forEach(k => {
-      try { const v = localStorage.getItem('cs_'+k); if (v !== null) DB[k] = JSON.parse(v); }
-      catch {}
-    });
+    console.warn('[Firebase] ⚠️ Chargement échoué:', e.message);
+    showFbError('Impossible de charger les données. Vérifiez votre connexion et actualisez.');
   }
 }
 
@@ -188,14 +193,8 @@ window.logout=function(){sessionStorage.removeItem('cs_auth_user');window.locati
    DASHBOARD
 ════════════════════════════════════════ */
 function initDashboard(){
-  // Apply logo — DB cache (Firestore) en priorité, localStorage en fallback
-  const logo=DB.pageContent?.logo||localStorage.getItem('cs_logo');
-  if(logo){
-    const sImg=document.querySelector('.sidebar-logo-img');
-    const sTxt=document.querySelector('.sidebar-logo-text');
-    if(sImg){sImg.src=logo;sImg.classList.add('loaded');}
-    if(sTxt)sTxt.style.display='none';
-  }
+  // Logo statique depuis assets/img/logo.svg
+
   // Username
   const un=document.getElementById('sidebar-username');if(un)un.textContent=currentUser?.username||'Admin';
   const ut=document.getElementById('sidebar-usertype');if(ut)ut.textContent=currentUser?.type==='headmaster'?'Headmaster ✦':'Administrateur';
@@ -208,15 +207,12 @@ function initDashboard(){
   initTabs();
   if(hasPerm('articles'))initArticlesPanel();
   if(hasPerm('projects'))initProjectsPanel();
-  if(hasPerm('services'))initServicesPanel();
   if(hasPerm('pages'))initPagesPanel();
   if(hasPerm('clients'))initClientsPanel();
   if(hasPerm('messages'))initMessagesPanel();
-  if(hasPerm('media'))initMediaPanel();
   if(hasPerm('footer'))initFooterPanel();
   if(hasPerm('analytics'))initAnalyticsPanel();
   if(hasPerm('settings'))initSettingsPanel();
-  if(hasPerm('users'))initUsersPanel();
 }
 
 function hasPerm(p){if(!p)return true;if(!currentUser)return false;if(currentUser.type==='headmaster')return true;return currentUser.perms?.includes(p);}
@@ -255,8 +251,6 @@ function compressImage(dataURL,maxPx=1600,quality=0.82){
     img.src=dataURL;
   });
 }
-
-/* ── Safe localStorage save with quota feedback ────────── */
 
 
 function makeImgUpload(containerId, onLoaded, opts={}){
@@ -690,283 +684,16 @@ function saveProject(){
 /* ════════════════════════════════════════
    SERVICES PANEL
 ════════════════════════════════════════ */
-function initServicesPanel(){renderServicesEditor();}
-function renderServicesEditor(){
-  const wrap=document.getElementById('services-editor');if(!wrap)return;
-  wrap.innerHTML=S.services().map((s,i)=>`<div class="service-edit-card" data-id="${s.id}"><span class="service-num">${i+1}</span><div><div class="admin-form-grid" style="margin-bottom:10px"><div class="admin-form-group"><label>Icône (emoji)</label><input type="text" class="svc-icon" value="${s.icon||'✦'}" style="width:80px"></div><div class="admin-form-group"><label>Titre</label><input type="text" class="svc-title" value="${s.title||''}"></div></div><div class="admin-form-group"><label>Description</label><textarea class="svc-text" rows="3">${s.text||''}</textarea></div></div><div style="display:flex;flex-direction:column;gap:6px"><button class="admin-btn ghost sm" onclick="saveService('${s.id}',this)">Sauvegarder</button><button class="admin-btn danger sm" onclick="deleteService('${s.id}')">Supprimer</button></div></div>`).join('');
-}
-window.saveService=(id,btn)=>{const c=btn.closest('[data-id]');const svcs=S.services();const s=svcs.find(x=>x.id===id);if(!s)return;s.icon=c.querySelector('.svc-icon').value.trim();s.title=c.querySelector('.svc-title').value.trim();s.text=c.querySelector('.svc-text').value.trim();S.saveServices(svcs);feedback('services-feedback','Service sauvegardé.','success');};
-window.deleteService=id=>{if(!confirm('Supprimer ?'))return;S.saveServices(S.services().filter(s=>s.id!==id));renderServicesEditor();};
-window.addService=()=>{S.saveServices([...S.services(),{id:Date.now().toString(),icon:'✦',title:'Nouveau service',text:'Description.'}]);renderServicesEditor();};
+function initMediaPanel(){}
 
-/* ════════════════════════════════════════
-   PAGES PANEL
-════════════════════════════════════════ */
-function initPagesPanel(){
-  const pc=S.pageContent();
-  Object.keys(pc).forEach(k=>{const el=document.getElementById('page-'+k);if(el)el.value=pc[k];});
-  document.getElementById('btn-save-pages')?.addEventListener('click',()=>{
-    const pc=S.pageContent();
-    document.querySelectorAll('.page-section-editor textarea').forEach(ta=>{pc[ta.id.replace('page-','')]=ta.value;});
-    S.savePageContent(pc);feedback('pages-feedback','Contenus sauvegardés.','success');
-  });
-}
-
-/* ════════════════════════════════════════
-   CLIENTS & TESTIMONIALS PANEL
-════════════════════════════════════════ */
-function initClientsPanel(){
-  renderClients();renderTestimonials();renderTeam();
-  document.getElementById('btn-add-client')?.addEventListener('click',addClient);
-  document.getElementById('btn-add-testimonial')?.addEventListener('click',addTestimonial);
-  document.getElementById('btn-add-team')?.addEventListener('click',addTeamMember);
-}
-
-function renderClients(){
-  const wrap=document.getElementById('clients-editor');if(!wrap)return;
-  wrap.innerHTML=S.clients().map(c=>`<div class="testimonial-edit" data-id="${c.id}"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">${c.logo?`<img src="${c.logo}" style="height:36px;object-fit:contain;background:#0a0a0a;padding:4px;border:1px solid #2a2a2a">`:'<div style="width:40px;height:36px;background:#1a1a1a;border:1px solid #2a2a2a"></div>'}<span style="font-size:13px;color:#aaa">${c.name||'Sans nom'}</span></div><div class="admin-form-grid"><div class="admin-form-group"><label>Nom client</label><input type="text" class="cl-name" value="${c.name||''}"></div><div class="admin-form-group"><label>Logo (depuis l'appareil)</label><div class="img-upload-wrap" id="client-img-${c.id}"><img class="img-thumb-preview ${c.logo?'loaded':''}" src="${c.logo||''}" style="width:60px;height:40px;object-fit:contain"><div class="img-upload-actions"><label class="btn-upload-file">📁 Importer logo<input type="file" accept="image/*" style="display:none"></label>${c.logo?'<button class="btn-remove-img" onclick="removeClientLogo(\''+c.id+'\',this)">✕ Retirer</button>':''}</div></div></div></div><div style="display:flex;gap:8px;margin-top:8px"><button class="admin-btn ghost sm" onclick="saveClient('${c.id}',this)">Sauvegarder</button><button class="admin-btn danger sm" onclick="deleteClient('${c.id}')">Supprimer</button></div></div>`).join('');
-  // File handlers for each client
-  S.clients().forEach(c=>{
-    const wrap2=document.getElementById('client-img-'+c.id);if(!wrap2)return;
-    const fileInp=wrap2.querySelector('input[type=file]');
-    const thumb=wrap2.querySelector('.img-thumb-preview');
-    fileInp?.addEventListener('change',()=>{
-      const f=fileInp.files[0];if(!f)return;
-      const r=new FileReader();r.onload=async e=>{const c=await compressImage(e.target.result,800,0.85);if(thumb){thumb.src=c;thumb.classList.add('loaded');}};r.readAsDataURL(f);
-    });
-  });
-}
-
-window.saveClient=(id,btn)=>{
-  const c=btn.closest('[data-id]');const clients=S.clients();const cl=clients.find(x=>x.id===id);if(!cl)return;
-  cl.name=c.querySelector('.cl-name').value.trim();
-  const thumb=c.querySelector('.img-thumb-preview');
-  if(thumb?.src&&thumb.src!==location.href)cl.logo=thumb.src;
-  S.saveClients(clients);feedback('clients-feedback','Client sauvegardé.','success');
-};
-window.removeClientLogo=(id,btn)=>{const c=btn.closest('[data-id]');const thumb=c.querySelector('.img-thumb-preview');if(thumb){thumb.src='';thumb.classList.remove('loaded');}};
-window.deleteClient=id=>{S.saveClients(S.clients().filter(c=>c.id!==id));renderClients();};
-window.addClient=()=>{S.saveClients([...S.clients(),{id:Date.now().toString(),name:'Nouveau client',logo:''}]);renderClients();};
-
-function renderTestimonials(){
-  const wrap=document.getElementById('testimonials-editor');if(!wrap)return;
-  wrap.innerHTML=S.testimonials().map(t=>`<div class="testimonial-edit" data-id="${t.id}"><div class="admin-form-grid"><div class="admin-form-group"><label>Nom</label><input type="text" class="tm-name" value="${t.name||''}"></div><div class="admin-form-group"><label>Rôle</label><input type="text" class="tm-role" value="${t.role||''}"></div><div class="admin-form-group"><label>Entreprise</label><input type="text" class="tm-company" value="${t.company||''}"></div><div class="admin-form-group"><label>Étoiles (1-5)</label><input type="number" class="tm-stars" value="${t.stars||5}" min="1" max="5"></div><div class="admin-form-group"><label>Lien LinkedIn</label><input type="url" class="tm-linkedin" value="${t.linkedIn||''}"></div><div class="admin-form-group"><label>Photo (depuis appareil)</label><div class="img-upload-wrap"><img class="img-thumb-preview tm-photo-preview ${t.photo?'loaded':''}" src="${t.photo||''}"><div class="img-upload-actions"><label class="btn-upload-file">📁 Photo<input type="file" accept="image/*" style="display:none" class="tm-photo-file"></label></div></div></div></div><div class="admin-form-group"><label>Témoignage</label><textarea class="tm-text" rows="3">${t.text||''}</textarea></div><div style="display:flex;gap:8px;margin-top:10px"><button class="admin-btn ghost sm" onclick="saveTestimonial('${t.id}',this)">Sauvegarder</button><button class="admin-btn danger sm" onclick="deleteTestimonial('${t.id}')">Supprimer</button></div></div>`).join('');
-  wrap.querySelectorAll('.tm-photo-file').forEach(inp=>{
-    const thumb=inp.closest('.img-upload-wrap').querySelector('.tm-photo-preview');
-    inp.addEventListener('change',()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{if(thumb){thumb.src=e.target.result;thumb.classList.add('loaded');}};r.readAsDataURL(f);});
-  });
-}
-window.saveTestimonial=(id,btn)=>{const c=btn.closest('[data-id]');const tms=S.testimonials();const t=tms.find(x=>x.id===id);if(!t)return;t.name=c.querySelector('.tm-name').value.trim();t.role=c.querySelector('.tm-role').value.trim();t.company=c.querySelector('.tm-company').value.trim();t.stars=parseInt(c.querySelector('.tm-stars').value)||5;t.linkedIn=c.querySelector('.tm-linkedin').value.trim();t.text=c.querySelector('.tm-text').value.trim();const ph=c.querySelector('.tm-photo-preview');if(ph?.src&&ph.src!==location.href)t.photo=ph.src;S.saveTestimonials(tms);feedback('clients-feedback','Témoignage sauvegardé.','success');};
-window.deleteTestimonial=id=>{S.saveTestimonials(S.testimonials().filter(t=>t.id!==id));renderTestimonials();};
-window.addTestimonial=()=>{S.saveTestimonials([...S.testimonials(),{id:Date.now().toString(),name:'',role:'',company:'',stars:5,text:'',photo:'',linkedIn:''}]);renderTestimonials();};
-
-function renderTeam(){
-  const wrap=document.getElementById('team-editor');if(!wrap)return;
-  wrap.innerHTML=S.team().map(m=>`<div class="testimonial-edit" data-id="${m.id}"><div class="admin-form-grid"><div class="admin-form-group"><label>Nom complet</label><input type="text" class="tm-name" value="${m.name||''}"></div><div class="admin-form-group"><label>Rôle / Poste</label><input type="text" class="tm-role" value="${m.role||''}"></div><div class="admin-form-group"><label>Photo (carrée — rognage auto)</label><div class="img-upload-wrap"><img class="img-thumb-preview tm-photo-preview ${m.photo?'loaded':''}" src="${m.photo||''}" style="width:80px;height:80px;object-fit:cover;border-radius:4px"><div class="img-upload-actions"><label class="btn-upload-file">📁 Importer & rogner<input type="file" accept="image/*" style="display:none" class="tm-photo-file"></label></div></div></div><div class="admin-form-group"><label>LinkedIn</label><input type="url" class="tm-linkedin" value="${m.social?.linkedin||''}"></div></div><div class="admin-form-group"><label>Biographie</label><textarea class="tm-bio" rows="4">${m.bio||''}</textarea></div><div class="admin-form-group"><label>Certifications (virgule)</label><input type="text" class="tm-certs" value="${(m.certs||[]).join(', ')}"></div><div style="display:flex;gap:8px;margin-top:10px"><button class="admin-btn ghost sm" onclick="saveTeamMember('${m.id}',this)">Sauvegarder</button><button class="admin-btn danger sm" onclick="deleteTeamMember('${m.id}')">Supprimer</button></div></div>`).join('');
-  // File handlers with crop
-  wrap.querySelectorAll('.tm-photo-file').forEach(inp=>{
-    const thumb=inp.closest('.img-upload-wrap').querySelector('.tm-photo-preview');
-    inp.addEventListener('change',()=>{
-      const f=inp.files[0];if(!f)return;
-      const r=new FileReader();
-      r.onload=e=>openCropModal(e.target.result,croppedData=>{if(thumb){thumb.src=croppedData;thumb.classList.add('loaded');}});
-      r.readAsDataURL(f);
-    });
-  });
-}
-window.saveTeamMember=(id,btn)=>{const c=btn.closest('[data-id]');const team=S.team();const m=team.find(x=>x.id===id);if(!m)return;m.name=c.querySelector('.tm-name').value.trim();m.role=c.querySelector('.tm-role').value.trim();m.bio=c.querySelector('.tm-bio').value.trim();m.certs=c.querySelector('.tm-certs').value.split(',').map(x=>x.trim()).filter(Boolean);if(!m.social)m.social={};m.social.linkedin=c.querySelector('.tm-linkedin').value.trim();const ph=c.querySelector('.tm-photo-preview');if(ph?.src&&ph.src!==location.href)m.photo=ph.src;S.saveTeam(team);feedback('clients-feedback','Membre sauvegardé.','success');};
-window.deleteTeamMember=id=>{if(!confirm('Supprimer ?'))return;S.saveTeam(S.team().filter(m=>m.id!==id));renderTeam();};
-window.addTeamMember=()=>{S.saveTeam([...S.team(),{id:Date.now().toString(),name:'',role:'',bio:'',photo:'',certs:[],social:{}}]);renderTeam();};
-
-/* ════════════════════════════════════════
-   MESSAGES PANEL
-════════════════════════════════════════ */
-function initMessagesPanel(){renderMessages();}
-function renderMessages(){
-  const wrap=document.getElementById('messages-list');if(!wrap)return;
-  const msgs=S.messages();
-  const unread=msgs.filter(m=>!m.read).length;
-  const badge=document.getElementById('messages-count');if(badge)badge.textContent=unread?`(${unread} non lu${unread>1?'s':''})`:' ';
-  if(!msgs.length){wrap.innerHTML='<div class="empty-state"><span class="empty-icon">✉️</span>Aucun message reçu.</div>';return;}
-  wrap.innerHTML=msgs.map(m=>`<div class="msg-row ${m.read?'':'unread'}" onclick="openMessage('${m.id}')"><div class="msg-dot ${m.read?'read':''}"></div><div class="msg-info"><div class="msg-from">${m.name} — ${m.email}</div><div class="msg-subject">${(m.message||'').slice(0,70)}…</div></div><div class="msg-time">${fmtDateTime(m.timestamp)}</div></div>`).join('');
-}
-window.openMessage=id=>{
-  const msgs=S.messages();const m=msgs.find(x=>x.id===id);if(!m)return;
-  m.read=true;S.saveMessages(msgs);renderMessages();
-  const det=document.getElementById('message-detail');if(!det)return;
-  det.innerHTML=`<div class="msg-detail open"><div class="msg-detail-name">${m.name}</div><div class="msg-detail-meta">📧 ${m.email}${m.phone?' · 📱 '+m.phone:''} · ${fmtDateTime(m.timestamp)}</div><div class="msg-detail-body">${m.message}</div><div class="msg-detail-actions"><a href="mailto:${m.email}?subject=Re: Class S" class="admin-btn auto" target="_blank">↩ Répondre</a>${m.phone?`<a href="https://wa.me/${m.phone.replace(/\D/g,'')}" class="admin-btn ghost" target="_blank">💬 WhatsApp</a>`:''}<button class="admin-btn danger sm" onclick="deleteMessage('${m.id}')">Supprimer</button></div></div>`;
-};
-window.deleteMessage=id=>{if(!confirm('Supprimer ?'))return;S.saveMessages(S.messages().filter(m=>m.id!==id));document.getElementById('message-detail').innerHTML='';renderMessages();};
-window.exportMessages=period=>{
-  let msgs=S.messages();const now=new Date();
-  if(period==='week'){const w=new Date(now-7*864e5);msgs=msgs.filter(m=>new Date(m.timestamp)>=w);}
-  else if(period==='month'){const mo=new Date(now-30*864e5);msgs=msgs.filter(m=>new Date(m.timestamp)>=mo);}
-  const rows=[['Date','Nom','Email','Téléphone','Message'],...msgs.map(m=>[fmtDateTime(m.timestamp),m.name,m.email,m.phone||'',(m.message||'').replace(/,/g,' ')])];
-  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`messages-${period||'all'}-${now.toISOString().split('T')[0]}.csv`;a.click();URL.revokeObjectURL(a.href);
-};
-
-/* ════════════════════════════════════════
-   MEDIA PANEL
-════════════════════════════════════════ */
-function initMediaPanel(){
-  // Favicon
-  const favInp=document.getElementById('favicon-upload');
-  const favPrev=document.getElementById('favicon-preview');
-  const storedFav=localStorage.getItem('cs_favicon');
-  if(storedFav&&favPrev){favPrev.src=storedFav;favPrev.classList.add('loaded');}
-  favInp?.addEventListener('change',()=>{
-    const f=favInp.files[0];if(!f)return;
-    const r=new FileReader();r.onload=e=>{localStorage.setItem('cs_favicon',e.target.result);if(favPrev){favPrev.src=e.target.result;favPrev.classList.add('loaded');}feedback('media-feedback','Favicon mis à jour.','success');};r.readAsDataURL(f);
-  });
-
-  // Logo
-  const logoInp=document.getElementById('logo-upload');
-  const logoPrev=document.getElementById('logo-preview');
-  const storedLogo=localStorage.getItem('cs_logo');
-  if(storedLogo&&logoPrev){logoPrev.src=storedLogo;logoPrev.classList.add('loaded');}
-  logoInp?.addEventListener('change',()=>{
-    const f=logoInp.files[0];if(!f)return;
-    const r=new FileReader();r.onload=async e=>{
-      const compressed=await compressImage(e.target.result,800,0.85);
-      localStorage.setItem('cs_logo',compressed);
-      // Sync logo to Firestore via pageContent
-      const pc=S.pageContent();pc.logo=compressed;S.savePageContent(pc);
-      if(logoPrev){logoPrev.src=compressed;logoPrev.classList.add('loaded');}
-      feedback('media-feedback','Logo mis à jour et synchronisé.','success');
-    };r.readAsDataURL(f);
-  });
-
-  // Remove logo
-  document.getElementById('btn-remove-logo')?.addEventListener('click',()=>{localStorage.removeItem('cs_logo');const pc=S.pageContent();delete pc.logo;S.savePageContent(pc);if(logoPrev){logoPrev.src='';logoPrev.classList.remove('loaded');}feedback('media-feedback','Logo supprimé et synchronisé.','success');});
-
-  // Brochure
-  const brochInp=document.getElementById('brochure-upload');
-  const brochName=document.getElementById('brochure-name');
-  const storedBrochName=localStorage.getItem('cs_brochure_name');
-  if(storedBrochName&&brochName){brochName.textContent=storedBrochName;brochName.classList.add('loaded');}
-  brochInp?.addEventListener('change',()=>{
-    const f=brochInp.files[0];if(!f)return;
-    const r=new FileReader();r.onload=e=>{localStorage.setItem('cs_brochure',e.target.result);localStorage.setItem('cs_brochure_name',f.name);if(brochName){brochName.textContent=f.name;brochName.classList.add('loaded');}feedback('media-feedback','Dépliant mis à jour.','success');};r.readAsDataURL(f);
-  });
-}
-
-/* ════════════════════════════════════════
-   FOOTER PANEL
-════════════════════════════════════════ */
-function initFooterPanel(){
-  const fd=S.footer();
-  const bl=document.getElementById('footer-baseline-input');if(bl)bl.value=fd.baseline||'';
-  const cp=document.getElementById('footer-copy-input');if(cp)cp.value=fd.copy||'';
-  renderFooterLinks();
-  document.getElementById('btn-save-footer')?.addEventListener('click',()=>{const fd=S.footer();fd.baseline=document.getElementById('footer-baseline-input').value;fd.copy=document.getElementById('footer-copy-input').value;S.saveFooter(fd);feedback('footer-feedback','Footer sauvegardé.','success');});
-  document.getElementById('btn-add-footer-link')?.addEventListener('click',addFooterLink);
-}
-function renderFooterLinks(){
-  const wrap=document.getElementById('footer-links-editor');if(!wrap)return;
-  const links=S.footer().columns?.[0]?.links||[];
-  wrap.innerHTML=links.map((l,i)=>`<div class="footer-link-row" data-idx="${i}"><span class="drag-handle">⠿</span><input type="text" placeholder="Icône" value="${l.icon||''}" style="width:50px" class="fl-icon"><input type="text" placeholder="Label" value="${l.label||''}" class="fl-label"><input type="text" placeholder="URL" value="${l.url||''}" class="fl-url"><button class="admin-btn danger sm" onclick="removeFooterLink(${i})">✕</button></div>`).join('');
-}
-window.addFooterLink=()=>{const fd=S.footer();if(!fd.columns)fd.columns=[{type:'links',links:[]}];if(!fd.columns[0])fd.columns[0]={type:'links',links:[]};fd.columns[0].links.push({icon:'',label:'Nouveau lien',url:'#'});S.saveFooter(fd);renderFooterLinks();};
-window.removeFooterLink=idx=>{const fd=S.footer();fd.columns?.[0]?.links?.splice(idx,1);S.saveFooter(fd);renderFooterLinks();};
-window.saveFooterLinks=()=>{const fd=S.footer();const rows=document.querySelectorAll('.footer-link-row');const links=[];rows.forEach(r=>{links.push({icon:r.querySelector('.fl-icon').value,label:r.querySelector('.fl-label').value,url:r.querySelector('.fl-url').value});});if(!fd.columns)fd.columns=[{type:'links',links:[]}];fd.columns[0]={type:'links',links};S.saveFooter(fd);feedback('footer-feedback','Liens sauvegardés.','success');};
-
-/* ════════════════════════════════════════
-   ANALYTICS PANEL — General + By Page + By Visitor
-════════════════════════════════════════ */
-function initAnalyticsPanel(){
-  const d=window.CS_Analytics?.getData()||{};
-  const clicks=window.CS_Analytics?.getClicks()||{};
-  const daily=d.daily||{};
-
-  // General stats
-  setEl('stat-total-views',d.totalViews||0);
-  setEl('stat-unique-sessions',d.uniqueSessions||0);
-  const avgDur=d.avgDuration?.length?Math.round(d.avgDuration.reduce((a,b)=>a+b,0)/d.avgDuration.length):0;
-  setEl('stat-avg-duration',avgDur>60?Math.floor(avgDur/60)+'m '+avgDur%60+'s':avgDur+'s');
-  const allVisitors=new Set(Object.values(daily).flatMap(day=>day.visitors||[]));
-  setEl('stat-unique-visitors',allVisitors.size);
-
-  // Devices
-  const dev=d.devices||{desktop:0,mobile:0,tablet:0};
-  const devTotal=dev.desktop+dev.mobile+dev.tablet||1;
-  setEl('stat-desktop-pct',Math.round(dev.desktop/devTotal*100)+'%');
-  setEl('stat-mobile-pct',Math.round(dev.mobile/devTotal*100)+'%');
-  setEl('stat-tablet-pct',Math.round(dev.tablet/devTotal*100)+'%');
-
-  // Pages breakdown
-  const pagesWrap=document.getElementById('analytics-pages');
-  if(pagesWrap&&d.pages){
-    const sorted=Object.entries(d.pages).sort(([,a],[,b])=>b-a);
-    const max=sorted[0]?.[1]||1;
-    pagesWrap.innerHTML=sorted.map(([name,count])=>`<div class="page-row"><span class="page-name">${name}</span><div class="page-bar-wrap"><div class="page-bar" style="width:${(count/max*100).toFixed(0)}%"></div></div><span class="page-count">${count}</span></div>`).join('');
-  }
-
-  // Clicks
-  const clicksWrap=document.getElementById('analytics-clicks');
-  if(clicksWrap){
-    const sorted=Object.entries(clicks).sort(([,a],[,b])=>b-a).slice(0,12);
-    clicksWrap.innerHTML=sorted.length?sorted.map(([name,count])=>`<div class="click-row"><span class="click-name" title="${name}">${name}</span><span class="click-count">${count}</span></div>`).join(''):'<p style="color:#555;font-size:13px">Aucun clic enregistré.</p>';
-  }
-
-  // Daily chart (last 14 days)
-  const dailyWrap=document.getElementById('analytics-daily');
-  if(dailyWrap){
-    const dates=Object.keys(daily).sort().slice(-14);
-    const maxViews=Math.max(...dates.map(d=>daily[d]?.views||0),1);
-    dailyWrap.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:80px">${dates.map(date=>{
-      const views=daily[date]?.views||0;const h=Math.round((views/maxViews)*80);
-      return`<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1"><div style="background:var(--ap);width:100%;height:${h}px;border-radius:2px 2px 0 0;min-height:2px" title="${date}: ${views} vue(s)"></div><span style="font-size:9px;color:#444;transform:rotate(-45deg);white-space:nowrap">${date.slice(5)}</span></div>`;
-    }).join('')}</div>`;
-  }
-
-  // Visitors table (by visitor ID)
-  const visitorsWrap=document.getElementById('analytics-visitors');
-  if(visitorsWrap){
-    // Build per-visitor data
-    const visitorMap={};
-    Object.entries(daily).forEach(([date,day])=>{
-      (day.visitors||[]).forEach(vid=>{
-        if(!visitorMap[vid])visitorMap[vid]={id:vid,days:[],views:0};
-        visitorMap[vid].days.push(date);
-      });
-      // views per visitor not tracked individually — show sessions per visitor
-    });
-    // Total views per visitor not precisely tracked, show session count
-    const visitorList=Object.values(visitorMap).sort((a,b)=>b.days.length-a.days.length).slice(0,20);
-    if(visitorList.length){
-      visitorsWrap.innerHTML=`<table class="visitor-table"><thead><tr><th>ID Visiteur</th><th>Sessions</th><th>Première visite</th><th>Dernière visite</th></tr></thead><tbody>${visitorList.map(v=>`<tr><td class="visitor-id-cell" title="${v.id}">${v.id.slice(0,12)}…</td><td style="color:var(--ap)">${v.days.length}</td><td style="color:#666">${v.days[0]||'—'}</td><td style="color:#666">${v.days[v.days.length-1]||'—'}</td></tr>`).join('')}</tbody></table>`;
-    } else {
-      visitorsWrap.innerHTML='<p style="color:#555;font-size:13px">Aucun visiteur enregistré.</p>';
-    }
-  }
-
-  // Referrers
-  const refWrap=document.getElementById('analytics-referrers');
-  if(refWrap&&d.referrers){
-    const sorted=Object.entries(d.referrers).sort(([,a],[,b])=>b-a).slice(0,8);
-    refWrap.innerHTML=sorted.length?sorted.map(([ref,count])=>`<div class="click-row"><span class="click-name">${ref}</span><span class="click-count">${count}</span></div>`).join(''):'<p style="color:#555;font-size:13px">Aucune source externe.</p>';
-  }
-
-  document.getElementById('btn-export-analytics')?.addEventListener('click',()=>window.CS_Analytics?.exportCSV());
-  document.getElementById('btn-reset-analytics')?.addEventListener('click',()=>{if(!confirm('Réinitialiser toutes les statistiques ?'))return;window.CS_Analytics?.reset();location.reload();});
-}
-
-function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
-
-/* ════════════════════════════════════════
-   SETTINGS PANEL
-════════════════════════════════════════ */
 function initSettingsPanel(){
   document.getElementById('btn-export')?.addEventListener('click',exportData);
   document.getElementById('import-file')?.addEventListener('change',e=>importData(e.target.files[0]));
-  // EmailJS config: localStorage direct (config locale par appareil, pas besoin de Firestore)
-  try{
-    const cfg=JSON.parse(localStorage.getItem('cs_emailjs_config'));
+  // EmailJS config → Firestore
+  if(window.FB){window.FB.load('emailjsConfig').then(cfg=>{
     if(cfg){const p=document.getElementById('ej-public-key');const s=document.getElementById('ej-service-id');const t=document.getElementById('ej-template-id');if(p)p.value=cfg.publicKey||'';if(s)s.value=cfg.serviceId||'';if(t)t.value=cfg.templateId||'';}
-  }catch{}
-  document.getElementById('btn-save-emailjs')?.addEventListener('click',()=>{localStorage.setItem('cs_emailjs_config',JSON.stringify({publicKey:document.getElementById('ej-public-key')?.value,serviceId:document.getElementById('ej-service-id')?.value,templateId:document.getElementById('ej-template-id')?.value}));feedback('settings-feedback','Configuration EmailJS sauvegardée.','success');});
+  }).catch(()=>{});}
+  document.getElementById('btn-save-emailjs')?.addEventListener('click',()=>{const cfg={publicKey:document.getElementById('ej-public-key')?.value,serviceId:document.getElementById('ej-service-id')?.value,templateId:document.getElementById('ej-template-id')?.value};if(window.FB)window.FB.save('emailjsConfig',cfg);feedback('settings-feedback','Configuration EmailJS sauvegardée.','success');});
 }
 
 function exportData(){
