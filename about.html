@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>À Propos — Class S, Agence de Design Visuel à Ouagadougou | Burkina Faso</title>
   <meta name="description" content="Class S est une agence de design visuel fondée à Ouagadougou. Découvrez notre histoire, notre philosophie et notre engagement pour l'excellence visuelle des marques africaines.">
-  <text y='.9em' font-size='90'>✦</text></svg>">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/img/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +67,7 @@
 
 <header class="navbar" role="banner">
   <div class="container">
-    <a href="index.html" class="navbar-logo" role="button" aria-label="Class S"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></a>
+    <a href="index.html" class="navbar-logo" role="button" aria-label="Class S"><img class="logo-img loaded" src="assets/img/logo.svg" alt="Class S" style="height:32px;width:auto"><span class="logo-text">Class S</span></a>
     <ul class="navbar-links" role="list">
       <li><a href="index.html">Accueil</a></li>
       <li><a href="works.html">Projets</a></li>
@@ -216,7 +215,7 @@
   <div class="container">
     <div class="footer-top">
       <div>
-        <div class="footer-logo" role="button"><img class="logo-img" src="" alt="Class S"><span class="logo-text">Class S</span></div>
+        <div class="footer-logo" role="button"><img class="logo-img loaded" src="assets/img/logo.svg" alt="Class S" style="height:32px;width:auto"><span class="logo-text">Class S</span></div>
         <p class="footer-baseline" id="footer-baseline">L'identité visuelle qui s'impose.</p>
       </div>
       <nav aria-label="Liens">
@@ -249,14 +248,13 @@
 <script src="js/analytics.js"></script>
 <script defer src="js/main.js"></script>
 <script defer>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const grid = document.getElementById('team-grid');
   if (!grid) return;
   let team;
   try {
-    const FB = await (window._fbReady||Promise.resolve(null));
-    team = FB ? (await FB.load('team')) || window.ClassS.getDefaultTeam() : window.ClassS.getDefaultTeam();
-  } catch { try{team=JSON.parse(localStorage.getItem('cs_team'))||window.ClassS.getDefaultTeam();}catch{team=window.ClassS.getDefaultTeam();} }
+    team = window.FB ? ((await window.FB.load('team')) || []) : [];
+  } catch(e) { console.warn('Firebase indisponible:', e); team = []; }
   grid.innerHTML = team.map(m => {
     const photoEl = m.photo
       ? `<img class="team-photo" src="${m.photo}" alt="${m.name}" loading="lazy">`
